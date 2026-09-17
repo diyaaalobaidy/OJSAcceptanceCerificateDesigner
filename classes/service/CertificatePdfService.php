@@ -115,18 +115,28 @@ class CertificatePdfService
         // QR Code element
         $qrCodeHtml = '';
         if (!empty($extra['qrCodeDataUri'])) {
-            $qrCodeHtml = '<img src="' . htmlspecialchars($toStr($extra['qrCodeDataUri'])) . '" alt="QR Code" style="width:90px;height:90px;display:inline-block;" />';
+            $qrCodeHtml = '<img src="' . htmlspecialchars($toStr($extra['qrCodeDataUri'])) . '" alt="QR Code" style="width:70px;height:70px;display:inline-block;" />';
         }
 
-        // Image data URIs for tokens
+        // Image data URIs and fitted dimensions for tokens (preserving aspect ratio)
         $template = $extra['template'] ?? null;
         $logoDataUri = $this->convertPathToDataUri($extra['logoPath'] ?? ($template?->logo_path ?? null));
         $signatureDataUri = $this->convertPathToDataUri($extra['signaturePath'] ?? ($template?->signature_path ?? null));
         $stampDataUri = $this->convertPathToDataUri($extra['stampPath'] ?? ($template?->stamp_path ?? null));
 
-        $logoImgTag = $logoDataUri ? '<img src="' . htmlspecialchars($logoDataUri) . '" alt="Official Header Logo" style="max-height:80px; max-width:250px; display:inline-block;" />' : '';
-        $signatureImgTag = $signatureDataUri ? '<img src="' . htmlspecialchars($signatureDataUri) . '" alt="Editor Signature" style="max-height:60px; max-width:180px; display:inline-block;" />' : '';
-        $stampImgTag = $stampDataUri ? '<img src="' . htmlspecialchars($stampDataUri) . '" alt="Journal Official Seal" style="max-height:80px; max-width:120px; display:inline-block;" />' : '';
+        $logoDim = $logoDataUri ? $this->computeFittedDimensions($logoDataUri, 160, 60) : null;
+        $signatureDim = $signatureDataUri ? $this->computeFittedDimensions($signatureDataUri, 130, 45) : null;
+        $stampDim = $stampDataUri ? $this->computeFittedDimensions($stampDataUri, 75, 75) : null;
+
+        $logoImgTag = ($logoDataUri && $logoDim)
+            ? '<img src="' . htmlspecialchars($logoDataUri) . '" alt="Official Header Logo" width="' . $logoDim['width'] . '" height="' . $logoDim['height'] . '" class="header-logo-img" style="width:' . $logoDim['width'] . 'px; height:' . $logoDim['height'] . 'px; display:inline-block; vertical-align:middle;" />'
+            : '';
+        $signatureImgTag = ($signatureDataUri && $signatureDim)
+            ? '<img src="' . htmlspecialchars($signatureDataUri) . '" alt="Editor Signature" width="' . $signatureDim['width'] . '" height="' . $signatureDim['height'] . '" class="signature-img" style="width:' . $signatureDim['width'] . 'px; height:' . $signatureDim['height'] . 'px; display:inline-block; vertical-align:middle;" />'
+            : '';
+        $stampImgTag = ($stampDataUri && $stampDim)
+            ? '<img src="' . htmlspecialchars($stampDataUri) . '" alt="Journal Official Seal" width="' . $stampDim['width'] . '" height="' . $stampDim['height'] . '" class="stamp-img" style="width:' . $stampDim['width'] . 'px; height:' . $stampDim['height'] . 'px; display:inline-block; vertical-align:middle;" />'
+            : '';
 
         $replacements = [
             '{$journalName}'       => htmlspecialchars($toStr($journalName)),
@@ -182,21 +192,24 @@ class CertificatePdfService
         $logoHtml = '';
         $bodyHasLogo = str_contains($template->body_html ?? '', '{$headerLogo}') || str_contains($template->body_html ?? '', '{$logo}');
         if (!$bodyHasLogo && $logoDataUri) {
-            $logoHtml = '<div class="header-logo"><img src="' . htmlspecialchars($logoDataUri) . '" style="max-height:80px; max-width:250px;" /></div>';
+            $dim = $this->computeFittedDimensions($logoDataUri, 160, 60);
+            $logoHtml = '<div class="header-logo"><img src="' . htmlspecialchars($logoDataUri) . '" width="' . $dim['width'] . '" height="' . $dim['height'] . '" class="header-logo-img" style="width:' . $dim['width'] . 'px; height:' . $dim['height'] . 'px; display:inline-block; vertical-align:middle;" /></div>';
         }
 
         // Signature image (omit from bottom signoff if explicitly placed into body via token)
         $signatureHtml = '';
         $bodyHasSignature = str_contains($template->body_html ?? '', '{$editorSignature}') || str_contains($template->body_html ?? '', '{$signature}');
         if (!$bodyHasSignature && $signatureDataUri) {
-            $signatureHtml = '<img src="' . htmlspecialchars($signatureDataUri) . '" style="max-height:60px; max-width:180px; vertical-align:middle; margin-right:12px; margin-left:12px;" />';
+            $dim = $this->computeFittedDimensions($signatureDataUri, 130, 45);
+            $signatureHtml = '<img src="' . htmlspecialchars($signatureDataUri) . '" width="' . $dim['width'] . '" height="' . $dim['height'] . '" class="signature-img" style="width:' . $dim['width'] . 'px; height:' . $dim['height'] . 'px; vertical-align:middle; margin-right:8px; margin-left:8px; display:inline-block;" />';
         }
 
         // Seal / Stamp image (omit from bottom signoff if explicitly placed into body via token)
         $stampHtml = '';
         $bodyHasStamp = str_contains($template->body_html ?? '', '{$journalSeal}') || str_contains($template->body_html ?? '', '{$stamp}');
         if (!$bodyHasStamp && $stampDataUri) {
-            $stampHtml = '<img src="' . htmlspecialchars($stampDataUri) . '" style="max-height:80px; max-width:120px; vertical-align:middle;" />';
+            $dim = $this->computeFittedDimensions($stampDataUri, 75, 75);
+            $stampHtml = '<img src="' . htmlspecialchars($stampDataUri) . '" width="' . $dim['width'] . '" height="' . $dim['height'] . '" class="stamp-img" style="width:' . $dim['width'] . 'px; height:' . $dim['height'] . 'px; vertical-align:middle; display:inline-block;" />';
         }
 
         $headerStartAlign = $isRtl ? 'right' : 'left';
@@ -211,13 +224,13 @@ class CertificatePdfService
     <style>
         @page {
             size: {$pageSize} {$orientation};
-            margin: 20mm 20mm 20mm 20mm;
+            margin: 12mm 15mm 10mm 15mm;
         }
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
             color: #222222;
-            line-height: 1.6;
-            font-size: 13px;
+            line-height: 1.4;
+            font-size: 12px;
             direction: {$dir};
             margin: 0;
             padding: 0;
@@ -228,8 +241,9 @@ class CertificatePdfService
         }
         .header {
             border-bottom: 2px solid #005a9c;
-            padding-bottom: 12px;
-            margin-bottom: 25px;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            page-break-inside: avoid;
         }
         .header-table {
             width: 100%;
@@ -238,26 +252,51 @@ class CertificatePdfService
         .header-logo {
             text-align: {$headerStartAlign};
         }
+        .header-logo-img {
+            display: inline-block;
+            vertical-align: middle;
+        }
         .header-title {
             text-align: {$headerEndAlign};
-            font-size: 18px;
+            font-size: 15px;
             font-weight: bold;
             color: #005a9c;
         }
         .body-content {
-            min-height: 440px;
-            margin-bottom: 30px;
+            margin-bottom: 8px;
         }
-        .footer {
-            border-top: 1px solid #dddddd;
-            padding-top: 15px;
-            margin-top: 30px;
-            font-size: 11px;
-            color: #666666;
+        .body-content h2 {
+            font-size: 15px;
+            margin: 0 0 8px 0;
+            color: #005a9c;
+        }
+        .body-content p {
+            margin: 0 0 6px 0;
+            line-height: 1.4;
+        }
+        .body-content blockquote {
+            margin: 6px 0;
+            padding: 4px 10px;
+            border-left: 3px solid #005a9c;
+            font-style: italic;
+            background: #f8fafc;
+        }
+        .signoff-section {
+            page-break-inside: avoid;
+        }
+        .signature-img {
+            vertical-align: middle;
+            margin-right: 8px;
+            margin-left: 8px;
+            display: inline-block;
+        }
+        .stamp-img {
+            vertical-align: middle;
+            display: inline-block;
         }
         .signoff-table {
             width: 100%;
-            margin-top: 40px;
+            margin-top: 10px;
             border-collapse: collapse;
         }
         .signoff-table td {
@@ -265,6 +304,14 @@ class CertificatePdfService
         }
         .qr-section {
             text-align: {$headerEndAlign};
+        }
+        .footer {
+            border-top: 1px solid #dddddd;
+            padding-top: 6px;
+            margin-top: 10px;
+            font-size: 9px;
+            color: #666666;
+            page-break-inside: avoid;
         }
     </style>
 </head>
@@ -291,13 +338,13 @@ class CertificatePdfService
                 <tr>
                     <td style="width: 60%; text-align: {$headerStartAlign};">
                         <div><strong>{$extra['editorName']}</strong></div>
-                        <div style="color: #666;">{$extra['editorRole']}</div>
-                        <div style="margin-top: 10px;">{$signatureHtml}{$stampHtml}</div>
+                        <div style="color: #666; font-size: 11px;">{$extra['editorRole']}</div>
+                        <div style="margin-top: 6px;">{$signatureHtml}{$stampHtml}</div>
                     </td>
                     <td style="width: 40%; text-align: {$headerEndAlign};">
                         {$extra['qrCodeImgTag']}
-                        <div style="font-size: 10px; color: #777; margin-top: 5px;">Scan to verify certificate</div>
-                        <div style="font-size: 10px; color: #777;">ID: {$extra['certificateNumber']}</div>
+                        <div style="font-size: 9px; color: #777; margin-top: 3px;">Scan to verify certificate</div>
+                        <div style="font-size: 9px; color: #777;">ID: {$extra['certificateNumber']}</div>
                     </td>
                 </tr>
             </table>
@@ -480,4 +527,64 @@ HTML;
             default => (function_exists('mime_content_type') ? @mime_content_type($filePath) : null) ?: 'image/png',
         };
     }
+
+    /**
+     * Calculate fitted width and height preserving natural aspect ratio within a bounding box.
+     * Works with data URIs, local file paths, and web URLs.
+     *
+     * @return array{width: int, height: int}
+     */
+    protected function computeFittedDimensions(string $imageSource, int $maxBoxWidth, int $maxBoxHeight): array
+    {
+        $rawBytes = null;
+
+        if (str_starts_with($imageSource, 'data:image/')) {
+            $commaPos = strpos($imageSource, ',');
+            if ($commaPos !== false) {
+                $rawBytes = base64_decode(substr($imageSource, $commaPos + 1), true);
+            }
+        } elseif (file_exists($imageSource) && is_readable($imageSource)) {
+            $rawBytes = @file_get_contents($imageSource);
+        }
+
+        $origWidth = null;
+        $origHeight = null;
+
+        if ($rawBytes && strlen($rawBytes) > 0) {
+            // Check SVG first
+            if (str_contains(substr($rawBytes, 0, 500), '<svg')) {
+                if (preg_match('/viewBox\s*=\s*["\']\s*[\d.-]+\s+[\d.-]+\s+([\d.]+)\s+([\d.]+)\s*["\']/i', $rawBytes, $matches)) {
+                    $origWidth = (float) $matches[1];
+                    $origHeight = (float) $matches[2];
+                } elseif (preg_match('/width\s*=\s*["\']([\d.]+)p?x?["\']/i', $rawBytes, $wMatch) &&
+                          preg_match('/height\s*=\s*["\']([\d.]+)p?x?["\']/i', $rawBytes, $hMatch)) {
+                    $origWidth = (float) $wMatch[1];
+                    $origHeight = (float) $hMatch[1];
+                }
+            } else {
+                $info = @getimagesizefromstring($rawBytes);
+                if ($info && !empty($info[0]) && !empty($info[1])) {
+                    $origWidth = (float) $info[0];
+                    $origHeight = (float) $info[1];
+                }
+            }
+        }
+
+        // If dimensions cannot be resolved, scale by max width and height ratio
+        if (!$origWidth || !$origHeight || $origWidth <= 0 || $origHeight <= 0) {
+            return ['width' => $maxBoxWidth, 'height' => $maxBoxHeight];
+        }
+
+        // Calculate aspect ratio preserving scaling factor to fit snugly within the bounding box
+        $scale = min($maxBoxWidth / $origWidth, $maxBoxHeight / $origHeight);
+
+        $targetWidth = max(1, (int) round($origWidth * $scale));
+        $targetHeight = max(1, (int) round($origHeight * $scale));
+
+        return [
+            'width' => $targetWidth,
+            'height' => $targetHeight,
+        ];
+    }
 }
+

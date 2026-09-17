@@ -57,6 +57,44 @@
 
         var journalPath = getJournalPath();
         var downloadUrl = '/index.php/' + journalPath + '/acceptanceWorkflow/downloadPdf?submissionId=' + submissionId;
+        var sendEmailUrl = '/index.php/' + journalPath + '/acceptanceWorkflow/sendEmail?submissionId=' + submissionId;
+
+        function triggerSendEmail(btnEl) {
+            if (!confirm('Send the official acceptance letter and certificate directly to the author via email?')) {
+                return;
+            }
+            var origHtml = btnEl.innerHTML;
+            btnEl.disabled = true;
+            btnEl.innerHTML = '<span>⏳</span> Sending...';
+
+            fetch(sendEmailUrl, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                btnEl.disabled = false;
+                btnEl.innerHTML = origHtml;
+                if (data && data.status === true) {
+                    var msg = (data.content && data.content.message) ? data.content.message : 'Acceptance letter sent successfully!';
+                    if (window.pkp && pkp.eventBus) {
+                        pkp.eventBus.$emit('notify', msg, 'success');
+                    } else {
+                        alert(msg);
+                    }
+                } else {
+                    var err = (data && data.content) ? (typeof data.content === 'string' ? data.content : data.content.message) : 'Failed to send email.';
+                    alert(err || 'Failed to send email.');
+                }
+            })
+            .catch(function(err) {
+                btnEl.disabled = false;
+                btnEl.innerHTML = origHtml;
+                alert('Network error while sending email: ' + err.message);
+            });
+        }
 
         // Target 1: The OJS 3.5 flex button bar containing Payments, Preview, Activity Log, Library
         var headerBar = document.querySelector('[data-cy="sidemodal-header"] .flex.gap-x-4')
@@ -84,21 +122,54 @@
                     existingBtn.href = downloadUrl;
                 }
             }
+
+            var existingEmailBtn = document.getElementById('pkp-acceptance-letter-header-email-btn');
+            if (!existingEmailBtn) {
+                var emailBtn = document.createElement('button');
+                emailBtn.id = 'pkp-acceptance-letter-header-email-btn';
+                emailBtn.type = 'button';
+                emailBtn.className = 'pkpButton inline-flex relative items-center gap-x-1 text-lg-semibold text-primary border-light hover:text-hover disabled:text-disabled bg-secondary py-[0.4375rem] px-3 border rounded';
+                emailBtn.style.cssText = 'text-decoration: none; cursor: pointer;';
+                emailBtn.innerHTML = '<span>✉️</span> Send Letter to Author';
+                emailBtn.title = 'Send official acceptance letter and certificate directly to author via email';
+                emailBtn.onclick = function() {
+                    triggerSendEmail(emailBtn);
+                };
+                headerBar.appendChild(emailBtn);
+            }
         }
 
-        // Target 2: Floating button at bottom right (always visible)
-        var existingFloat = document.getElementById('pkp-acceptance-letter-floating-btn');
-        if (!existingFloat) {
+        // Target 2: Floating button container at bottom right (always visible)
+        var existingContainer = document.getElementById('pkp-acceptance-letter-floating-container');
+        if (!existingContainer) {
+            var container = document.createElement('div');
+            container.id = 'pkp-acceptance-letter-floating-container';
+            container.style.cssText = 'position: fixed; bottom: 25px; right: 25px; z-index: 999999; display: flex; gap: 8px; align-items: center;';
+
             var floatBtn = document.createElement('a');
             floatBtn.id = 'pkp-acceptance-letter-floating-btn';
             floatBtn.href = downloadUrl;
             floatBtn.target = '_blank';
-            floatBtn.style.cssText = 'position: fixed; bottom: 25px; right: 25px; z-index: 999999; display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: #006798; color: #ffffff; border-radius: 25px; font-weight: 600; font-size: 14px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid #ffffff; cursor: pointer;';
+            floatBtn.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 9px 16px; background: #006798; color: #ffffff; border-radius: 25px; font-weight: 600; font-size: 13px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid #ffffff; cursor: pointer;';
             floatBtn.innerHTML = '<span>📜</span> Acceptance Letter';
             floatBtn.title = 'Download Acceptance Certificate PDF';
-            document.body.appendChild(floatBtn);
+            container.appendChild(floatBtn);
+
+            var floatEmailBtn = document.createElement('button');
+            floatEmailBtn.id = 'pkp-acceptance-letter-floating-email-btn';
+            floatEmailBtn.type = 'button';
+            floatEmailBtn.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 9px 16px; background: #0284c7; color: #ffffff; border-radius: 25px; font-weight: 600; font-size: 13px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid #ffffff; cursor: pointer;';
+            floatEmailBtn.innerHTML = '<span>✉️</span> Send to Author';
+            floatEmailBtn.title = 'Send Acceptance Letter directly to author via email';
+            floatEmailBtn.onclick = function() {
+                triggerSendEmail(floatEmailBtn);
+            };
+            container.appendChild(floatEmailBtn);
+
+            document.body.appendChild(container);
         } else {
-            if (existingFloat.href !== downloadUrl) {
+            var existingFloat = document.getElementById('pkp-acceptance-letter-floating-btn');
+            if (existingFloat && existingFloat.href !== downloadUrl) {
                 existingFloat.href = downloadUrl;
             }
         }

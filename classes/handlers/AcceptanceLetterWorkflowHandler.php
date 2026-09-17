@@ -122,7 +122,7 @@ class AcceptanceLetterWorkflowHandler extends Handler
             'editorName'         => $user->getFullName(),
             'editorRole'         => 'Editor',
             'verificationUrl'    => $verifyUrl,
-            'qrCodeImgTag'       => $qrCodeData ? '<img src="' . $qrCodeData . '" style="width:80px;height:80px;" />' : '',
+            'qrCodeImgTag'       => $qrCodeData ? '<img src="' . $qrCodeData . '" style="width:70px;height:70px;" />' : '',
             'qrCodeDataUri'      => $qrCodeData,
         ];
 
@@ -145,6 +145,192 @@ class AcceptanceLetterWorkflowHandler extends Handler
         header('Content-Disposition: attachment; filename="Acceptance_Letter_' . $submission->getId() . '.pdf"');
         echo $pdfOutput;
         exit;
+    }
+
+    /**
+     * Send acceptance letter and certificate directly to author via email
+     */
+    public function sendEmail($args, $request): JSONMessage
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('acceptance_templates')) {
+            (new \APP\plugins\generic\acceptanceLetter\classes\migration\AcceptanceLetterSchemaMigration())->up();
+        }
+
+        $submission = $this->getAuthorizedContextObject(Application::ASSOC_TYPE_SUBMISSION);
+        $context = $request->getContext();
+        $user = $request->getUser();
+        $publication = $submission ? $submission->getCurrentPublication() : null;
+
+        if (!$publication) {
+            return new JSONMessage(false, 'Publication details not found for this submission.');
+        }
+
+        // Find primary author and co-authors
+        $authors = $publication->getData('authors') ?? [];
+        $recipients = [];
+        $primaryAuthor = null;
+        foreach ($authors as $author) {
+            $email = method_exists($author, 'getEmail') ? $author->getEmail() : $author->getData('email');
+            $name = method_exists($author, 'getFullName') ? $author->getFullName() : ($author->getData('givenName') . ' ' . $author->getData('familyName'));
+            if (!empty($email)) {
+                $recipients[] = ['email' => $email, 'name' => $name];
+                if ($author->getData('primaryContact') && !$primaryAuthor) {
+                    $primaryAuthor = ['email' => $email, 'name' => $name];
+                }
+            }
+        }
+
+        if (!$primaryAuthor && !empty($recipients)) {
+            $primaryAuthor = $recipients[0];
+        }
+
+        if (!$primaryAuthor || empty($primaryAuthor['email'])) {
+            return new JSONMessage(false, __('plugins.generic.acceptanceLetter.noAuthorEmail'));
+        }
+
+        $template = AcceptanceTemplate::getDefaultTemplate($context->getId());
+        if (!$template) {
+            $template = new AcceptanceTemplate([
+                'context_id'  => $context->getId(),
+                'name'        => 'Default',
+                'page_size'   => 'A4',
+                'orientation' => 'portrait',
+                'locale'      => $context->getPrimaryLocale(),
+                'body_html'   => AcceptanceTemplate::getDefaultBodyHtml(),
+            ]);
+        }
+
+        // Generate token and verification data
+        $token = VerificationService::generateToken($context->getId(), $submission->getId());
+        $certNumber = VerificationService::generateCertificateNumber($context->getId(), $submission->getId());
+        $verifyUrl = VerificationService::getVerificationUrl($token, $context->getPath());
+        $qrCodeData = VerificationService::generateQrCodeDataUri($verifyUrl);
+
+        $editorName = $user ? $user->getFullName() : ($context->getData('contactName') ?? 'Editorial Office');
+        $pdfService = new CertificatePdfService($context);
+        $extra = [
+            'template'           => $template,
+            'logoPath'           => $template->logo_path,
+            'signaturePath'      => $template->signature_path,
+            'stampPath'          => $template->stamp_path,
+            'dateAccepted'       => date('Y-m-d'),
+            'dateIssued'         => date('Y-m-d'),
+            'certificateNumber'  => $certNumber,
+            'editorName'         => $editorName,
+            'editorRole'         => 'Editor',
+            'verificationUrl'    => $verifyUrl,
+            'qrCodeImgTag'       => $qrCodeData ? '<img src="' . $qrCodeData . '" style="width:70px;height:70px;" />' : '',
+            'qrCodeDataUri'      => $qrCodeData,
+        ];
+
+        $compiledBody = $pdfService->substituteVariables($template->body_html, $submission, $extra);
+        $fullHtml = $pdfService->buildDocumentHtml($template, $compiledBody, $extra);
+        $pdfBinary = $pdfService->renderToPdf($fullHtml);
+
+        // Record issuance
+        IssuedCertificate::create([
+            'context_id'         => $context->getId(),
+            'submission_id'      => $submission->getId(),
+            'template_id'        => $template->template_id ?? null,
+            'certificate_number' => $certNumber,
+            'verification_token' => $token,
+            'issued_by_user_id'  => $user ? $user->getId() : 0,
+            'issued_at'          => date('Y-m-d H:i:s'),
+        ]);
+
+        $journalName = $context->getLocalizedName() ?: ($context->getData('name') ?? 'Journal');
+        $articleTitle = $publication->getLocalizedTitle();
+        $subject = "Official Acceptance Letter: #{$submission->getId()} - {$articleTitle}";
+        $filename = 'Acceptance_Letter_' . $submission->getId() . '.pdf';
+
+        $htmlBody = <<<HTML
+<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #222;">
+    <p>Dear {$primaryAuthor['name']},</p>
+    <p>We are pleased to inform you that your manuscript titled "<strong>{$articleTitle}</strong>" (Submission ID: <strong>#{$submission->getId()}</strong>) has been formally accepted for publication in <strong>{$journalName}</strong>.</p>
+    <p>Please find attached your official, signed Acceptance Letter and Certificate.</p>
+    <p>You can also verify the authenticity of this certificate at any time via the following link:<br>
+    <a href="{$verifyUrl}" style="color: #005a9c; text-decoration: underline;">{$verifyUrl}</a></p>
+    <br>
+    <p>Sincerely,<br>
+    <strong>{$editorName}</strong><br>
+    {$journalName}</p>
+</div>
+HTML;
+
+        // Additional CC authors
+        $ccList = [];
+        foreach ($recipients as $recipient) {
+            if ($recipient['email'] !== $primaryAuthor['email']) {
+                $ccList[] = $recipient;
+            }
+        }
+
+        $sent = false;
+
+        // Method 1: Laravel Mail facade (standard in OJS 3.4 & 3.5)
+        if (class_exists(\Illuminate\Support\Facades\Mail::class)) {
+            try {
+                \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($primaryAuthor, $ccList, $subject, $htmlBody, $pdfBinary, $filename, $context) {
+                    $senderEmail = $context->getData('contactEmail') ?: (\PKP\config\Config::getVar('email', 'default_envelope_sender') ?: null);
+                    $senderName = $context->getLocalizedName() ?: $context->getData('name');
+                    if ($senderEmail) {
+                        $message->from($senderEmail, $senderName);
+                    }
+                    $message->to($primaryAuthor['email'], $primaryAuthor['name'])
+                            ->subject($subject)
+                            ->html($htmlBody);
+
+                    foreach ($ccList as $cc) {
+                        $message->cc($cc['email'], $cc['name']);
+                    }
+
+                    if (method_exists($message, 'attachData')) {
+                        $message->attachData($pdfBinary, $filename, [
+                            'mime' => 'application/pdf',
+                        ]);
+                    }
+                });
+                $sent = true;
+            } catch (\Throwable $e) {
+                error_log('[AcceptanceLetter] Mail facade error: ' . $e->getMessage());
+            }
+        }
+
+        // Method 2: PKP MailTemplate fallback
+        if (!$sent && (class_exists(\PKP\mail\MailTemplate::class) || class_exists('MailTemplate'))) {
+            try {
+                $mailClass = class_exists(\PKP\mail\MailTemplate::class) ? \PKP\mail\MailTemplate::class : 'MailTemplate';
+                $mail = new $mailClass();
+                if (method_exists($mail, 'setContext')) {
+                    $mail->setContext($context);
+                }
+                $mail->addRecipient($primaryAuthor['email'], $primaryAuthor['name']);
+                foreach ($ccList as $cc) {
+                    $mail->addCc($cc['email'], $cc['name']);
+                }
+                $mail->setSubject($subject);
+                $mail->setBody($htmlBody);
+
+                $tempFile = tempnam(sys_get_temp_dir(), 'acc_') . '.pdf';
+                file_put_contents($tempFile, $pdfBinary);
+                if (method_exists($mail, 'addAttachment')) {
+                    $mail->addAttachment($tempFile, $filename, 'application/pdf');
+                }
+                if (method_exists($mail, 'send')) {
+                    $sent = $mail->send();
+                }
+                @unlink($tempFile);
+            } catch (\Throwable $e) {
+                error_log('[AcceptanceLetter] MailTemplate error: ' . $e->getMessage());
+            }
+        }
+
+        if ($sent) {
+            $msg = __('plugins.generic.acceptanceLetter.emailSent') . ' (' . $primaryAuthor['email'] . ')';
+            return new JSONMessage(true, ['message' => $msg]);
+        } else {
+            return new JSONMessage(false, 'Unable to send email. Please check your journal mail / SMTP settings in config.inc.php.');
+        }
     }
 
     protected function getTemplateResource(string $templateName): string
