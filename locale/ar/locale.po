@@ -1,0 +1,65 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: AcceptanceLetterPlugin\n"
+"POT-Creation-Date: 2026-09-17\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ar\n"
+
+msgid "plugins.generic.acceptanceLetter.displayName"
+msgstr "مصمم خطابات وشهادات القبول"
+
+msgid "plugins.generic.acceptanceLetter.description"
+msgstr "يتيح لمديري المجلات والمحررين تصميم وإنشاء والتحقق من خطابات وشهادات القبول الرسمية بصيغة PDF للأبحاث المقبولة."
+
+msgid "plugins.generic.acceptanceLetter.designerTitle"
+msgstr "مصمم خطاب القبول"
+
+msgid "plugins.generic.acceptanceLetter.designerDesc"
+msgstr "تخصيص قالب الخطاب وأبعاد الصفحة والاتجاه والتوقيعات والأختام الرسمية."
+
+msgid "plugins.generic.acceptanceLetter.templateName"
+msgstr "اسم القالب"
+
+msgid "plugins.generic.acceptanceLetter.pageSize"
+msgstr "حجم الورق"
+
+msgid "plugins.generic.acceptanceLetter.orientation"
+msgstr "اتجاه الصفحة"
+
+msgid "plugins.generic.acceptanceLetter.language"
+msgstr "اللغة والاتجاه"
+
+msgid "plugins.generic.acceptanceLetter.tokensTitle"
+msgstr "المتغيرات الديناميكية المتاحة"
+
+msgid "plugins.generic.acceptanceLetter.tokensDesc"
+msgstr "انقر فوق أي متغير لإدراجه في قالب الخطاب. سيتم استبدال هذه المتغيرات تلقائياً ببيانات البحث."
+
+msgid "plugins.generic.acceptanceLetter.bodyContent"
+msgstr "نص الخطاب (يدعم وسوم HTML)"
+
+msgid "plugins.generic.acceptanceLetter.uploadLogo"
+msgstr "شعار الترويسة الرسمي"
+
+msgid "plugins.generic.acceptanceLetter.uploadSignature"
+msgstr "صورة توقيع المحرر"
+
+msgid "plugins.generic.acceptanceLetter.uploadStamp"
+msgstr "الختم الرسمي للمجلة"
+
+msgid "plugins.generic.acceptanceLetter.saved"
+msgstr "تم حفظ قالب خطاب القبول بنجاح."
+
+msgid "plugins.generic.acceptanceLetter.modalNotice"
+msgstr "إصدار خطاب القبول الرسمي"
+
+msgid "plugins.generic.acceptanceLetter.modalNoticeDesc"
+msgstr "إنشاء خطاب قبول رسمي موقّع ومزود برمز QR للتحقق الفوري لهذا البحث المقبول."
+
+msgid "plugins.generic.acceptanceLetter.issuingEditor"
+msgstr "المحرر المصدر"
+
+msgid "plugins.generic.acceptanceLetter.downloadPdf"
+msgstr "توليد وتحميل ملف PDF"

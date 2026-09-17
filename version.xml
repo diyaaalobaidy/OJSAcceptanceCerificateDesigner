@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE version SYSTEM "../../../lib/pkp/dtd/pluginVersion.dtd">
+<version>
+    <application>acceptanceLetter</application>
+    <type>plugins.generic</type>
+    <release>1.0.0.0</release>
+    <date>2026-09-17</date>
+    <lazy-load>1</lazy-load>
+    <sitewide>0</sitewide>
+    <class>APP\plugins\generic\acceptanceLetter\AcceptanceLetterPlugin</class>
+</version>

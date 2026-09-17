@@ -1,0 +1,65 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: AcceptanceLetterPlugin\n"
+"POT-Creation-Date: 2026-09-17\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+msgid "plugins.generic.acceptanceLetter.displayName"
+msgstr "Acceptance Letter & Certificate Designer"
+
+msgid "plugins.generic.acceptanceLetter.description"
+msgstr "Allows journal managers and editors to design, generate, and verify official PDF acceptance letters and certificates for accepted submissions."
+
+msgid "plugins.generic.acceptanceLetter.designerTitle"
+msgstr "Acceptance Letter Designer"
+
+msgid "plugins.generic.acceptanceLetter.designerDesc"
+msgstr "Customize the letter template, paper dimensions, orientation, and official signatures or stamps."
+
+msgid "plugins.generic.acceptanceLetter.templateName"
+msgstr "Template Name"
+
+msgid "plugins.generic.acceptanceLetter.pageSize"
+msgstr "Paper Size"
+
+msgid "plugins.generic.acceptanceLetter.orientation"
+msgstr "Orientation"
+
+msgid "plugins.generic.acceptanceLetter.language"
+msgstr "Language & Direction"
+
+msgid "plugins.generic.acceptanceLetter.tokensTitle"
+msgstr "Available Dynamic Tokens"
+
+msgid "plugins.generic.acceptanceLetter.tokensDesc"
+msgstr "Click on any token below to insert it into the letter template. These tokens will be replaced dynamically with submission data."
+
+msgid "plugins.generic.acceptanceLetter.bodyContent"
+msgstr "Letter Body Template (HTML supported)"
+
+msgid "plugins.generic.acceptanceLetter.uploadLogo"
+msgstr "Official Header Logo"
+
+msgid "plugins.generic.acceptanceLetter.uploadSignature"
+msgstr "Editor Signature Image"
+
+msgid "plugins.generic.acceptanceLetter.uploadStamp"
+msgstr "Journal Official Seal / Stamp"
+
+msgid "plugins.generic.acceptanceLetter.saved"
+msgstr "Acceptance letter template saved successfully."
+
+msgid "plugins.generic.acceptanceLetter.modalNotice"
+msgstr "Issue Official Acceptance Letter"
+
+msgid "plugins.generic.acceptanceLetter.modalNoticeDesc"
+msgstr "Generate an official signed acceptance letter with a unique verification QR code for this accepted submission."
+
+msgid "plugins.generic.acceptanceLetter.issuingEditor"
+msgstr "Issuing Editor"
+
+msgid "plugins.generic.acceptanceLetter.downloadPdf"
+msgstr "Generate & Download PDF"
