@@ -113,7 +113,7 @@ class AcceptanceLetterWorkflowHandler extends Handler
             'certificate_number' => $certNumber,
             'verification_token' => $token,
             'issued_by_user_id'  => $user->getId(),
-            'issued_at'          => now(),
+            'issued_at'          => date('Y-m-d H:i:s'),
         ]);
 
         header('Content-Type: application/pdf');

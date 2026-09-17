@@ -13,7 +13,13 @@ class AcceptanceLetterPlugin extends GenericPlugin
     public function register($category, $path, $mainContextId = null): bool
     {
         $success = parent::register($category, $path, $mainContextId);
-        if ($success && $this->getEnabled($mainContextId)) {
+        if ($success) {
+            // Load bundled composer dependencies
+            $vendorAutoload = $this->getPluginPath() . '/vendor/autoload.php';
+            if (file_exists($vendorAutoload)) {
+                require_once $vendorAutoload;
+            }
+
             // Workflow editorial action injection
             Hook::add('TemplateManager::display', [$this, 'callbackWorkflowActions']);
             
@@ -84,6 +90,11 @@ class AcceptanceLetterPlugin extends GenericPlugin
             $migration->up();
         }
 
+        // Ensure lazy_load is 0 in the versions table so OJS loads the plugin on all pages
+        \Illuminate\Support\Facades\DB::table('versions')
+            ->where('product', 'acceptanceLetter')
+            ->update(['lazy_load' => 0]);
+
         $context = $request->getContext();
         $verb = $request->getUserVar('verb');
 
@@ -152,18 +163,13 @@ class AcceptanceLetterPlugin extends GenericPlugin
         $page = $args[0];
         $op = $args[1] ?? '';
 
-        if ($page === 'acceptanceSettings') {
-            define('HANDLER_CLASS', 'APP\plugins\generic\acceptanceLetter\classes\handlers\AcceptanceLetterSettingsHandler');
-            return true;
-        }
-
         if ($page === 'acceptanceWorkflow') {
-            define('HANDLER_CLASS', 'APP\plugins\generic\acceptanceLetter\classes\handlers\AcceptanceLetterWorkflowHandler');
+            $args[3] = new \APP\plugins\generic\acceptanceLetter\classes\handlers\AcceptanceLetterWorkflowHandler();
             return true;
         }
 
         if ($page === 'acceptance') {
-            define('HANDLER_CLASS', 'APP\plugins\generic\acceptanceLetter\classes\handlers\AcceptanceLetterVerifyHandler');
+            $args[3] = new \APP\plugins\generic\acceptanceLetter\classes\handlers\AcceptanceLetterVerifyHandler();
             return true;
         }
 
@@ -171,101 +177,19 @@ class AcceptanceLetterPlugin extends GenericPlugin
     }
 
     /**
-     * Inject button into the editorial workflow
+     * Inject workflow script and actions into backend
      */
     public function callbackWorkflowActions(string $hookName, array $args): bool
     {
-        $template = $args[1] ?? '';
-        if (strpos($template, 'workflow') === false) {
-            return false;
-        }
-
         $templateMgr = $args[0];
         $request = Application::get()->getRequest();
-        $context = $request->getContext();
-        $journalPath = $context ? $context->getPath() : 'test';
 
-        $btnLabel = __('plugins.generic.acceptanceLetter.displayName');
-        $btnAction = __('plugins.generic.acceptanceLetter.downloadPdf');
-
-        $templateMgr->registerFilter('output', function ($output) use ($journalPath, $btnLabel, $btnAction) {
-            $js = <<<JS
-<script type="text/javascript">
-(function() {
-    function injectAcceptanceLetterButtons() {
-        if (document.getElementById('pkp-acceptance-letter-header-btn')) return;
-
-        // 1. Extract submission ID from URL (e.g. /workflow/access/64150)
-        var submissionId = null;
-        var match = window.location.pathname.match(/\/workflow\/(?:access|index)\/(\d+)/);
-        if (match && match[1]) {
-            submissionId = match[1];
-        } else {
-            var params = new URLSearchParams(window.location.search);
-            submissionId = params.get('submissionId');
-        }
-        if (!submissionId) return;
-
-        var downloadUrl = '/index.php/{$journalPath}/acceptanceWorkflow/downloadPdf?submissionId=' + submissionId;
-
-        // 2. Locate header actions bar (next to Activity Log / Library buttons)
-        var allButtons = Array.from(document.querySelectorAll('button, a'));
-        var targetBtn = allButtons.find(function(el) {
-            var text = el.textContent.trim();
-            return text === 'Activity Log' || text === 'Library' || text === 'Preview';
-        });
-
-        if (targetBtn && targetBtn.parentElement) {
-            var headerBtn = document.createElement('a');
-            headerBtn.id = 'pkp-acceptance-letter-header-btn';
-            headerBtn.href = downloadUrl;
-            headerBtn.target = '_blank';
-            headerBtn.className = 'pkpButton pkpButton--primary';
-            headerBtn.style.cssText = 'display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; background: #006798; color: #ffffff; border-radius: 4px; font-weight: 600; font-size: 13px; text-decoration: none; margin-left: 8px; vertical-align: middle; border: 1px solid #005077; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.1);';
-            headerBtn.innerHTML = '<span>📜</span> Acceptance Letter';
-            headerBtn.title = 'Generate & Download Official Acceptance Letter (PDF)';
-            targetBtn.parentElement.appendChild(headerBtn);
-        }
-
-        // 3. Locate left navigation menu (under Workflow tabs)
-        if (!document.getElementById('pkp-acceptance-letter-nav-btn')) {
-            var allLinks = Array.from(document.querySelectorAll('a, button, li'));
-            var prodLink = allLinks.find(function(el) {
-                return el.textContent.trim() === 'Production';
-            });
-
-            if (prodLink) {
-                var container = prodLink.closest('ul') || prodLink.parentElement;
-                if (container) {
-                    var navItem = document.createElement('li');
-                    navItem.id = 'pkp-acceptance-letter-nav-btn';
-                    navItem.style.cssText = 'margin: 6px 0; list-style: none;';
-                    navItem.innerHTML = '<a href="' + downloadUrl + '" target="_blank" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; color: #006798; font-weight: bold; font-size: 13px; text-decoration: none; background: #f0f9ff; border-left: 3px solid #0284c7; border-radius: 0 4px 4px 0;"><span>📜</span> Acceptance Letter</a>';
-                    container.appendChild(navItem);
-                }
-            }
-        }
-    }
-
-    // Attempt immediately and repeat periodically until Vue components mount
-    injectAcceptanceLetterButtons();
-    var tries = 0;
-    var poller = setInterval(function() {
-        tries++;
-        injectAcceptanceLetterButtons();
-        if (document.getElementById('pkp-acceptance-letter-header-btn') || tries > 25) {
-            clearInterval(poller);
-        }
-    }, 400);
-})();
-</script>
-JS;
-
-            if (strpos($output, '</body>') !== false) {
-                return str_replace('</body>', $js . "\n" . '</body>', $output);
-            }
-            return $output . $js;
-        });
+        // Register external JavaScript via PKP's standard asset pipeline
+        $templateMgr->addJavaScript(
+            'acceptanceLetterWorkflowJs',
+            $request->getBaseUrl() . '/' . $this->getPluginPath() . '/js/workflow.js',
+            ['contexts' => ['backend']]
+        );
 
         return false;
     }

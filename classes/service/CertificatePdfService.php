@@ -8,6 +8,14 @@ use APP\submission\Submission;
 use PKP\context\Context;
 use APP\plugins\generic\acceptanceLetter\classes\model\AcceptanceTemplate;
 
+// Load bundled composer dependencies if needed
+if (!class_exists(\Dompdf\Dompdf::class)) {
+    $vendorAutoload = dirname(__DIR__, 2) . '/vendor/autoload.php';
+    if (file_exists($vendorAutoload)) {
+        require_once $vendorAutoload;
+    }
+}
+
 class CertificatePdfService
 {
     protected Context $context;
@@ -62,37 +70,67 @@ class CertificatePdfService
         }
 
         // Section
-        $sectionRepo = \APP\core\Application::get()->getSectionDao();
-        $section = $sectionRepo->getById($publication->getData('sectionId'));
-        $sectionTitle = $section ? $section->getLocalizedTitle() : '';
+        $sectionTitle = '';
+        $sectionId = (int) $publication->getData('sectionId');
+        if ($sectionId) {
+            $section = class_exists(\APP\facades\Repo::class)
+                ? \APP\facades\Repo::section()->get($sectionId)
+                : (\PKP\db\DAORegistry::getDAO('SectionDAO')?->getById($sectionId));
+            $sectionTitle = $section ? $section->getLocalizedTitle() : '';
+        }
+
+        $toStr = function ($val): string {
+            if (is_array($val)) {
+                $primaryLocale = $this->context->getPrimaryLocale();
+                if (isset($val[$primaryLocale]) && !empty($val[$primaryLocale])) {
+                    return (string) $val[$primaryLocale];
+                }
+                foreach ($val as $v) {
+                    if (!empty($v) && is_scalar($v)) {
+                        return (string) $v;
+                    }
+                }
+                return '';
+            }
+            return (string) ($val ?? '');
+        };
 
         // ISSN
-        $onlineIssn = $this->context->getData('onlineIssn') ?? '';
-        $printIssn = $this->context->getData('printIssn') ?? '';
-        $issn = $onlineIssn ? $onlineIssn : $printIssn;
+        $onlineIssn = $toStr($this->context->getData('onlineIssn'));
+        $printIssn = $toStr($this->context->getData('printIssn'));
+        $issn = $onlineIssn ?: $printIssn;
+
+        // Acronym
+        $acronym = $this->context->getLocalizedData('acronym');
+        if (!$acronym) {
+            $acronym = $toStr($this->context->getData('acronym'));
+        }
+
+        // Journal name
+        $journalName = $this->context->getLocalizedName() ?: $toStr($this->context->getData('name'));
 
         // QR Code element
         $qrCodeHtml = '';
         if (!empty($extra['qrCodeDataUri'])) {
-            $qrCodeHtml = '<img src="' . $extra['qrCodeDataUri'] . '" alt="QR Code" style="width:90px;height:90px;display:inline-block;" />';
+            $qrCodeHtml = '<img src="' . htmlspecialchars($toStr($extra['qrCodeDataUri'])) . '" alt="QR Code" style="width:90px;height:90px;display:inline-block;" />';
         }
 
         $replacements = [
-            '{$journalName}'       => htmlspecialchars($this->context->getLocalizedName()),
-            '{$journalInitials}'   => htmlspecialchars($this->context->getData('acronym') ?? ''),
-            '{$issn}'              => htmlspecialchars($issn),
+            '{$journalName}'       => htmlspecialchars($toStr($journalName)),
+            '{$journalInitials}'   => htmlspecialchars($toStr($acronym)),
+            '{$issn}'              => htmlspecialchars($toStr($issn)),
             '{$submissionId}'      => (string) $submission->getId(),
-            '{$articleTitle}'      => htmlspecialchars($publication->getLocalizedTitle()),
+            '{$articleTitle}'      => htmlspecialchars($toStr($publication->getLocalizedTitle())),
             '{$authorsList}'       => htmlspecialchars(implode(', ', $authorNames)),
-            '{$primaryAuthor}'     => htmlspecialchars($primaryAuthor ?: ($authorNames[0] ?? '')),
-            '{$sectionTitle}'      => htmlspecialchars($sectionTitle),
-            '{$dateAccepted}'      => $extra['dateAccepted'] ?? date('Y-m-d'),
+            '{$primaryAuthor}'     => htmlspecialchars($toStr($primaryAuthor ?: ($authorNames[0] ?? ''))),
+            '{$sectionTitle}'      => htmlspecialchars($toStr($sectionTitle)),
+            '{$dateAccepted}'      => htmlspecialchars($toStr($extra['dateAccepted'] ?? date('Y-m-d'))),
             '{$dateIssued}'        => date('Y-m-d'),
-            '{$certificateNumber}' => htmlspecialchars($extra['certificateNumber'] ?? 'DRAFT'),
-            '{$editorName}'        => htmlspecialchars($extra['editorName'] ?? ($this->context->getData('contactName') ?? 'The Editorial Board')),
-            '{$editorRole}'        => htmlspecialchars($extra['editorRole'] ?? 'Editor-in-Chief'),
-            '{$doi}'               => htmlspecialchars($publication->getStoredPubId('doi') ?? 'N/A'),
-            '{$verificationUrl}'   => htmlspecialchars($extra['verificationUrl'] ?? ''),
+            '{$certificateNumber}' => htmlspecialchars($toStr($extra['certificateNumber'] ?? 'DRAFT')),
+            '{$editorName}'        => htmlspecialchars($toStr($extra['editorName'] ?? ($this->context->getData('contactName') ?? 'The Editorial Board'))),
+            '{$editorRole}'        => htmlspecialchars($toStr($extra['editorRole'] ?? 'Editor-in-Chief')),
+            '{$doi}'               => htmlspecialchars($toStr($publication->getStoredPubId('doi') ?? 'N/A')),
+            '{$verificationUrl}'   => htmlspecialchars($toStr($extra['verificationUrl'] ?? '')),
             '{$qrCode}'            => $qrCodeHtml,
         ];
 
@@ -108,6 +146,13 @@ class CertificatePdfService
         $pageSize = $template->page_size ?? 'A4';
         $isRtl = ($template->locale === 'ar' || str_starts_with($template->locale ?? '', 'ar_'));
         $dir = $isRtl ? 'rtl' : 'ltr';
+
+        $extra['editorName'] = htmlspecialchars((string) ($extra['editorName'] ?? ''));
+        $extra['editorRole'] = htmlspecialchars((string) ($extra['editorRole'] ?? ''));
+        $extra['qrCodeImgTag'] = (string) ($extra['qrCodeImgTag'] ?? '');
+        $extra['certificateNumber'] = htmlspecialchars((string) ($extra['certificateNumber'] ?? ''));
+        $extra['dateIssued'] = htmlspecialchars((string) ($extra['dateIssued'] ?? date('Y-m-d')));
+        $extra['verificationUrl'] = htmlspecialchars((string) ($extra['verificationUrl'] ?? ''));
 
         $logoHtml = '';
         if ($template->logo_path) {
@@ -242,6 +287,12 @@ HTML;
      */
     public function renderToPdf(string $html): string
     {
+        if (!class_exists(\Dompdf\Dompdf::class)) {
+            throw new \Exception(
+                'Dompdf library is not loaded. Please run "composer install --no-dev" inside plugins/generic/acceptanceLetter on your server.'
+            );
+        }
+
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', true);

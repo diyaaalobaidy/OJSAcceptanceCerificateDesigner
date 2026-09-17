@@ -30,8 +30,9 @@ class AcceptanceLetterVerifyHandler extends Handler
         if (!empty($token) && \Illuminate\Support\Facades\Schema::hasTable('acceptance_issued_letters')) {
             $certificate = IssuedCertificate::findByToken($token);
             if ($certificate && $certificate->context_id == $context->getId()) {
-                $submissionRepo = Application::get()->getSubmissionDao();
-                $submission = $submissionRepo->getById($certificate->submission_id);
+                $submission = class_exists(\APP\facades\Repo::class)
+                    ? \APP\facades\Repo::submission()->get($certificate->submission_id)
+                    : (\PKP\db\DAORegistry::getDAO('SubmissionDAO')?->getById($certificate->submission_id));
                 if ($submission) {
                     $isValid = true;
                 }

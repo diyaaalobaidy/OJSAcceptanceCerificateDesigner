@@ -32,6 +32,13 @@ class VerificationService
      */
     public static function generateQrCodeDataUri(string $url): string
     {
+        if (!class_exists(QRCode::class)) {
+            $vendorAutoload = dirname(__DIR__, 2) . '/vendor/autoload.php';
+            if (file_exists($vendorAutoload)) {
+                require_once $vendorAutoload;
+            }
+        }
+
         if (class_exists(QRCode::class)) {
             $options = new QROptions([
                 'outputType' => QRCode::OUTPUT_IMAGE_PNG,
