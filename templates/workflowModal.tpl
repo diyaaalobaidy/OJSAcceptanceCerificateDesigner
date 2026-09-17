@@ -17,7 +17,7 @@
             </tr>
             <tr>
                 <td style="padding: 4px 8px;"><strong>{translate key="article.authors"}:</strong></td>
-                <td style="padding: 4px 8px;">{$submission->getCurrentPublication()->getAuthorString()|escape}</td>
+                <td style="padding: 4px 8px;">{$authorString|default:''|escape}</td>
             </tr>
             <tr>
                 <td style="padding: 4px 8px;"><strong>{translate key="plugins.generic.acceptanceLetter.issuingEditor"}:</strong></td>

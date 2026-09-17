@@ -76,24 +76,39 @@
         <!-- Signature & Stamp uploads -->
         <div class="pkp_form_row_grid" style="display: flex; gap: 20px; margin-top: 20px;">
             <div style="flex: 1;">
-                <label for="logo">{translate key="plugins.generic.acceptanceLetter.uploadLogo"}</label>
-                <input type="file" id="logo" name="logo" accept="image/png, image/jpeg, image/svg+xml" class="pkp_input" />
+                <label for="logo"><strong>{translate key="plugins.generic.acceptanceLetter.uploadLogo"}</strong></label>
+                <input type="file" id="logo" name="logo" accept="image/png, image/jpeg, image/svg+xml, image/gif, image/webp" class="pkp_input" />
                 {if $template && $template->logo_path}
-                    <div style="margin-top: 5px;"><small>Current: {$template->logo_path|escape}</small></div>
+                    <div style="margin-top: 6px; padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px;">
+                        <small style="color: #475569; word-break: break-all;">Current: {$template->logo_path|escape}</small><br>
+                        <label style="color: #dc2626; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;">
+                            <input type="checkbox" name="delete_logo" value="1" /> {translate key="common.delete"}
+                        </label>
+                    </div>
                 {/if}
             </div>
             <div style="flex: 1;">
-                <label for="signature">{translate key="plugins.generic.acceptanceLetter.uploadSignature"}</label>
-                <input type="file" id="signature" name="signature" accept="image/png, image/jpeg, image/svg+xml" class="pkp_input" />
+                <label for="signature"><strong>{translate key="plugins.generic.acceptanceLetter.uploadSignature"}</strong></label>
+                <input type="file" id="signature" name="signature" accept="image/png, image/jpeg, image/svg+xml, image/gif, image/webp" class="pkp_input" />
                 {if $template && $template->signature_path}
-                    <div style="margin-top: 5px;"><small>Current: {$template->signature_path|escape}</small></div>
+                    <div style="margin-top: 6px; padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px;">
+                        <small style="color: #475569; word-break: break-all;">Current: {$template->signature_path|escape}</small><br>
+                        <label style="color: #dc2626; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;">
+                            <input type="checkbox" name="delete_signature" value="1" /> {translate key="common.delete"}
+                        </label>
+                    </div>
                 {/if}
             </div>
             <div style="flex: 1;">
-                <label for="stamp">{translate key="plugins.generic.acceptanceLetter.uploadStamp"}</label>
-                <input type="file" id="stamp" name="stamp" accept="image/png, image/jpeg, image/svg+xml" class="pkp_input" />
+                <label for="stamp"><strong>{translate key="plugins.generic.acceptanceLetter.uploadStamp"}</strong></label>
+                <input type="file" id="stamp" name="stamp" accept="image/png, image/jpeg, image/svg+xml, image/gif, image/webp" class="pkp_input" />
                 {if $template && $template->stamp_path}
-                    <div style="margin-top: 5px;"><small>Current: {$template->stamp_path|escape}</small></div>
+                    <div style="margin-top: 6px; padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px;">
+                        <small style="color: #475569; word-break: break-all;">Current: {$template->stamp_path|escape}</small><br>
+                        <label style="color: #dc2626; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;">
+                            <input type="checkbox" name="delete_stamp" value="1" /> {translate key="common.delete"}
+                        </label>
+                    </div>
                 {/if}
             </div>
         </div>
@@ -114,5 +129,48 @@ function insertToken(token) {
     textarea.value = text.substring(0, start) + token + text.substring(end);
     textarea.focus();
     textarea.selectionEnd = start + token.length;
+}
+
+if (typeof jQuery !== 'undefined') {
+    jQuery(function($) {
+        $('#acceptanceLetterForm').on('submit', function(e) {
+            e.preventDefault();
+            var form = this;
+            var $form = $(form);
+            var formData = new FormData(form);
+            var $btn = $form.find('button[type="submit"]');
+            var origText = $btn.text();
+            $btn.prop('disabled', true).text('Saving...');
+
+            $.ajax({
+                url: form.action,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    $btn.prop('disabled', false).text(origText);
+                    if (response && response.status === true) {
+                        if (window.pkp && pkp.eventBus) {
+                            pkp.eventBus.$emit('notify', '{translate key="plugins.generic.acceptanceLetter.saved"}', 'success');
+                        } else {
+                            alert('{translate key="plugins.generic.acceptanceLetter.saved"}');
+                        }
+                        var modal = $form.closest('.ui-dialog-content');
+                        if (modal.length) {
+                            modal.dialog('close');
+                        }
+                    } else {
+                        var msg = (response && response.content) ? response.content : 'Failed to save settings.';
+                        alert(msg);
+                    }
+                },
+                error: function(xhr) {
+                    $btn.prop('disabled', false).text(origText);
+                    alert('Error saving settings: ' + (xhr.responseText || xhr.statusText));
+                }
+            });
+        });
+    });
 }
 </script>

@@ -25,6 +25,9 @@ class AcceptanceLetterVerifyHandler extends Handler
         
         $certificate = null;
         $submission = null;
+        $publication = null;
+        $authorString = '';
+        $issuedDate = '';
         $isValid = false;
 
         if (!empty($token) && \Illuminate\Support\Facades\Schema::hasTable('acceptance_issued_letters')) {
@@ -35,18 +38,36 @@ class AcceptanceLetterVerifyHandler extends Handler
                     : (\PKP\db\DAORegistry::getDAO('SubmissionDAO')?->getById($certificate->submission_id));
                 if ($submission) {
                     $isValid = true;
+                    $publication = $submission->getCurrentPublication();
+                    if ($publication) {
+                        $authors = $publication->getData('authors') ?? [];
+                        $names = [];
+                        foreach ($authors as $author) {
+                            $names[] = $author->getFullName();
+                        }
+                        $authorString = implode(', ', $names);
+                    }
+                    if ($certificate->issued_at) {
+                        $issuedDate = is_string($certificate->issued_at)
+                            ? date('F d, Y', strtotime($certificate->issued_at))
+                            : $certificate->issued_at->format('F d, Y');
+                    }
                 }
             }
         }
 
         $templateMgr = \PKP\template\PKPTemplateManager::getManager($request);
         $templateMgr->assign([
-            'token'        => $token,
-            'isValid'      => $isValid,
-            'certificate'  => $certificate,
-            'submission'   => $submission,
-            'publication'  => $submission ? $submission->getCurrentPublication() : null,
-            'journal'      => $context,
+            'token'                => $token,
+            'isValid'              => $isValid,
+            'certificate'          => $certificate,
+            'submission'           => $submission,
+            'publication'          => $publication,
+            'authorString'         => $authorString,
+            'issuedDate'           => $issuedDate,
+            'journal'              => $context,
+            'pageTitle'            => 'Certificate Verification',
+            'pageTitleTranslated'  => 'Certificate Verification',
         ]);
 
         $plugin = \PKP\plugins\PluginRegistry::getPlugin('generic', 'acceptanceletterplugin');

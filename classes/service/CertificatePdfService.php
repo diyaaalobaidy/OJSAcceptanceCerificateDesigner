@@ -47,6 +47,9 @@ class CertificatePdfService
             '{$doi}'                => 'Assigned DOI (if available)',
             '{$verificationUrl}'    => 'URL link to publicly verify authenticity',
             '{$qrCode}'             => 'QR code image linking to verification page',
+            '{$headerLogo}'         => 'Official Header Logo image',
+            '{$editorSignature}'    => 'Editor Signature image',
+            '{$journalSeal}'        => 'Journal Official Seal / Stamp image',
         ];
     }
 
@@ -115,6 +118,16 @@ class CertificatePdfService
             $qrCodeHtml = '<img src="' . htmlspecialchars($toStr($extra['qrCodeDataUri'])) . '" alt="QR Code" style="width:90px;height:90px;display:inline-block;" />';
         }
 
+        // Image data URIs for tokens
+        $template = $extra['template'] ?? null;
+        $logoDataUri = $this->convertPathToDataUri($extra['logoPath'] ?? ($template?->logo_path ?? null));
+        $signatureDataUri = $this->convertPathToDataUri($extra['signaturePath'] ?? ($template?->signature_path ?? null));
+        $stampDataUri = $this->convertPathToDataUri($extra['stampPath'] ?? ($template?->stamp_path ?? null));
+
+        $logoImgTag = $logoDataUri ? '<img src="' . htmlspecialchars($logoDataUri) . '" alt="Official Header Logo" style="max-height:80px; max-width:250px; display:inline-block;" />' : '';
+        $signatureImgTag = $signatureDataUri ? '<img src="' . htmlspecialchars($signatureDataUri) . '" alt="Editor Signature" style="max-height:60px; max-width:180px; display:inline-block;" />' : '';
+        $stampImgTag = $stampDataUri ? '<img src="' . htmlspecialchars($stampDataUri) . '" alt="Journal Official Seal" style="max-height:80px; max-width:120px; display:inline-block;" />' : '';
+
         $replacements = [
             '{$journalName}'       => htmlspecialchars($toStr($journalName)),
             '{$journalInitials}'   => htmlspecialchars($toStr($acronym)),
@@ -132,6 +145,12 @@ class CertificatePdfService
             '{$doi}'               => htmlspecialchars($toStr($publication->getStoredPubId('doi') ?? 'N/A')),
             '{$verificationUrl}'   => htmlspecialchars($toStr($extra['verificationUrl'] ?? '')),
             '{$qrCode}'            => $qrCodeHtml,
+            '{$headerLogo}'        => $logoImgTag,
+            '{$logo}'              => $logoImgTag,
+            '{$editorSignature}'   => $signatureImgTag,
+            '{$signature}'         => $signatureImgTag,
+            '{$journalSeal}'       => $stampImgTag,
+            '{$stamp}'             => $stampImgTag,
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $htmlTemplate);
@@ -154,20 +173,34 @@ class CertificatePdfService
         $extra['dateIssued'] = htmlspecialchars((string) ($extra['dateIssued'] ?? date('Y-m-d')));
         $extra['verificationUrl'] = htmlspecialchars((string) ($extra['verificationUrl'] ?? ''));
 
+        // Convert images to base64 Data URIs for reliable PDF embedding
+        $logoDataUri = $this->convertPathToDataUri($template->logo_path ?? null);
+        $signatureDataUri = $this->convertPathToDataUri($template->signature_path ?? null);
+        $stampDataUri = $this->convertPathToDataUri($template->stamp_path ?? null);
+
+        // Header logo (omit from header if explicitly placed into body via token)
         $logoHtml = '';
-        if ($template->logo_path) {
-            $logoHtml = '<div class="header-logo"><img src="' . htmlspecialchars($template->logo_path) . '" style="max-height:80px; max-width:250px;" /></div>';
+        $bodyHasLogo = str_contains($template->body_html ?? '', '{$headerLogo}') || str_contains($template->body_html ?? '', '{$logo}');
+        if (!$bodyHasLogo && $logoDataUri) {
+            $logoHtml = '<div class="header-logo"><img src="' . htmlspecialchars($logoDataUri) . '" style="max-height:80px; max-width:250px;" /></div>';
         }
 
+        // Signature image (omit from bottom signoff if explicitly placed into body via token)
         $signatureHtml = '';
-        if ($template->signature_path) {
-            $signatureHtml = '<img src="' . htmlspecialchars($template->signature_path) . '" style="max-height:60px;" />';
+        $bodyHasSignature = str_contains($template->body_html ?? '', '{$editorSignature}') || str_contains($template->body_html ?? '', '{$signature}');
+        if (!$bodyHasSignature && $signatureDataUri) {
+            $signatureHtml = '<img src="' . htmlspecialchars($signatureDataUri) . '" style="max-height:60px; max-width:180px; vertical-align:middle; margin-right:12px; margin-left:12px;" />';
         }
 
+        // Seal / Stamp image (omit from bottom signoff if explicitly placed into body via token)
         $stampHtml = '';
-        if ($template->stamp_path) {
-            $stampHtml = '<img src="' . htmlspecialchars($template->stamp_path) . '" style="max-height:80px;" />';
+        $bodyHasStamp = str_contains($template->body_html ?? '', '{$journalSeal}') || str_contains($template->body_html ?? '', '{$stamp}');
+        if (!$bodyHasStamp && $stampDataUri) {
+            $stampHtml = '<img src="' . htmlspecialchars($stampDataUri) . '" style="max-height:80px; max-width:120px; vertical-align:middle;" />';
         }
+
+        $headerStartAlign = $isRtl ? 'right' : 'left';
+        $headerEndAlign = $isRtl ? 'left' : 'right';
 
         return <<<HTML
 <!DOCTYPE html>
@@ -203,16 +236,16 @@ class CertificatePdfService
             border-collapse: collapse;
         }
         .header-logo {
-            text-align: left;
+            text-align: {$headerStartAlign};
         }
         .header-title {
-            text-align: right;
+            text-align: {$headerEndAlign};
             font-size: 18px;
             font-weight: bold;
             color: #005a9c;
         }
         .body-content {
-            min-height: 480px;
+            min-height: 440px;
             margin-bottom: 30px;
         }
         .footer {
@@ -231,7 +264,7 @@ class CertificatePdfService
             vertical-align: bottom;
         }
         .qr-section {
-            text-align: right;
+            text-align: {$headerEndAlign};
         }
     </style>
 </head>
@@ -240,8 +273,8 @@ class CertificatePdfService
         <div class="header">
             <table class="header-table">
                 <tr>
-                    <td style="width: 50%;">{$logoHtml}</td>
-                    <td style="width: 50%; text-align: right;">
+                    <td style="width: 50%; text-align: {$headerStartAlign};">{$logoHtml}</td>
+                    <td style="width: 50%; text-align: {$headerEndAlign};">
                         <div class="header-title">{$this->context->getLocalizedName()}</div>
                         <div style="font-size: 11px; color: #555;">Official Acceptance Certificate</div>
                     </td>
@@ -256,12 +289,12 @@ class CertificatePdfService
         <div class="signoff-section">
             <table class="signoff-table">
                 <tr>
-                    <td style="width: 60%;">
+                    <td style="width: 60%; text-align: {$headerStartAlign};">
                         <div><strong>{$extra['editorName']}</strong></div>
                         <div style="color: #666;">{$extra['editorRole']}</div>
-                        <div style="margin-top: 10px;">{$signatureHtml} {$stampHtml}</div>
+                        <div style="margin-top: 10px;">{$signatureHtml}{$stampHtml}</div>
                     </td>
-                    <td style="width: 40%; text-align: right;">
+                    <td style="width: 40%; text-align: {$headerEndAlign};">
                         {$extra['qrCodeImgTag']}
                         <div style="font-size: 10px; color: #777; margin-top: 5px;">Scan to verify certificate</div>
                         <div style="font-size: 10px; color: #777;">ID: {$extra['certificateNumber']}</div>
@@ -298,10 +331,153 @@ HTML;
         $options->set('isRemoteEnabled', true);
         $options->set('defaultFont', 'DejaVu Sans');
 
+        $chrootDirs = array_filter([
+            dirname(__DIR__, 4),
+            dirname(__DIR__, 5),
+            getcwd(),
+            sys_get_temp_dir(),
+        ]);
+        if (class_exists(\PKP\core\Core::class) && method_exists(\PKP\core\Core::class, 'getBaseDir')) {
+            $chrootDirs[] = \PKP\core\Core::getBaseDir();
+        }
+        $options->setChroot(array_values(array_unique($chrootDirs)));
+
         $dompdf = new Dompdf($options);
         $dompdf->loadHtml($html, 'UTF-8');
         $dompdf->render();
 
         return $dompdf->output();
+    }
+
+    /**
+     * Convert an image path or URL to a Base64 data URI for reliable Dompdf embedding
+     */
+    public function convertPathToDataUri(?string $path): ?string
+    {
+        if (empty($path)) {
+            return null;
+        }
+
+        // Already a data URI
+        if (str_starts_with($path, 'data:image/')) {
+            return $path;
+        }
+
+        $fullPath = $this->resolveLocalImagePath($path);
+
+        // If found on local filesystem, read and encode
+        if ($fullPath && is_readable($fullPath) && !is_dir($fullPath)) {
+            $content = @file_get_contents($fullPath);
+            if ($content !== false && strlen($content) > 0) {
+                $mime = $this->detectMimeType($fullPath, $content);
+                return 'data:' . $mime . ';base64,' . base64_encode($content);
+            }
+        }
+
+        // If it is a web URL, attempt to fetch it directly
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            $content = @file_get_contents($path);
+            if ($content !== false && strlen($content) > 0) {
+                $ext = strtolower(pathinfo(parse_url($path, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION));
+                $mime = match ($ext) {
+                    'jpg', 'jpeg' => 'image/jpeg',
+                    'png' => 'image/png',
+                    'gif' => 'image/gif',
+                    'svg' => 'image/svg+xml',
+                    'webp' => 'image/webp',
+                    default => 'image/png',
+                };
+                return 'data:' . $mime . ';base64,' . base64_encode($content);
+            }
+        }
+
+        return $path;
+    }
+
+    /**
+     * Try multiple candidate base paths to locate the image file on disk
+     */
+    protected function resolveLocalImagePath(string $path): ?string
+    {
+        // Direct match
+        if (file_exists($path) && !is_dir($path)) {
+            return realpath($path) ?: $path;
+        }
+
+        $cleanPath = ltrim($path, '/');
+
+        // Gather possible base directories
+        $candidateBases = [];
+
+        if (class_exists(\PKP\core\Core::class) && method_exists(\PKP\core\Core::class, 'getBaseDir')) {
+            $candidateBases[] = \PKP\core\Core::getBaseDir();
+        }
+        if (class_exists(\Core::class) && method_exists(\Core::class, 'getBaseDir')) {
+            $candidateBases[] = \Core::getBaseDir();
+        }
+        if (function_exists('base_path')) {
+            $candidateBases[] = base_path();
+        }
+        if (defined('INDEX_FILE_LOCATION')) {
+            $candidateBases[] = dirname(INDEX_FILE_LOCATION);
+        }
+
+        // Relative to plugin path (plugins/generic/acceptanceLetter/classes/service)
+        $candidateBases[] = dirname(__DIR__, 4);
+        $candidateBases[] = dirname(__DIR__, 5);
+        $candidateBases[] = getcwd();
+        if (!empty($_SERVER['DOCUMENT_ROOT'])) {
+            $candidateBases[] = $_SERVER['DOCUMENT_ROOT'];
+        }
+
+        // Try candidate bases directly
+        foreach (array_unique(array_filter($candidateBases)) as $baseDir) {
+            $test = rtrim($baseDir, '/') . '/' . $cleanPath;
+            if (file_exists($test) && !is_dir($test)) {
+                return realpath($test) ?: $test;
+            }
+        }
+
+        // Try with public files directory
+        $publicFileManager = class_exists(\APP\file\PublicFileManager::class)
+            ? new \APP\file\PublicFileManager()
+            : (class_exists(\PKP\file\PKPPublicFileManager::class) ? new \PKP\file\PKPPublicFileManager() : null);
+
+        if ($publicFileManager && isset($this->context)) {
+            $contextFilesPath = $publicFileManager->getContextFilesPath($this->context->getId());
+            $filename = basename($path);
+
+            // Test context files path directly
+            $test = rtrim($contextFilesPath, '/') . '/' . $filename;
+            if (file_exists($test) && !is_dir($test)) {
+                return realpath($test) ?: $test;
+            }
+
+            // Test context files path under candidate bases
+            foreach (array_unique(array_filter($candidateBases)) as $baseDir) {
+                $test = rtrim($baseDir, '/') . '/' . ltrim($contextFilesPath, '/') . '/' . $filename;
+                if (file_exists($test) && !is_dir($test)) {
+                    return realpath($test) ?: $test;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine mime type of an image file
+     */
+    protected function detectMimeType(string $filePath, string $content): string
+    {
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        return match ($ext) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'webp' => 'image/webp',
+            default => (function_exists('mime_content_type') ? @mime_content_type($filePath) : null) ?: 'image/png',
+        };
     }
 }

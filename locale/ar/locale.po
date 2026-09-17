@@ -63,3 +63,12 @@ msgstr "المحرر المصدر"
 
 msgid "plugins.generic.acceptanceLetter.downloadPdf"
 msgstr "توليد وتحميل ملف PDF"
+
+msgid "plugins.generic.acceptanceLetter.sendEmail"
+msgstr "إرسال الخطاب للباحث عبر البريد"
+
+msgid "plugins.generic.acceptanceLetter.emailSent"
+msgstr "تم إرسال خطاب القبول إلى الباحث بنجاح."
+
+msgid "plugins.generic.acceptanceLetter.noAuthorEmail"
+msgstr "لم يتم العثور على عنوان بريد إلكتروني للباحث في هذا البحث."

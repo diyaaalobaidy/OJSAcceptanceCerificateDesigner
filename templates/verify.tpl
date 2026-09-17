@@ -35,11 +35,11 @@
             </tr>
             <tr style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 12px 8px; font-weight: bold; color: #475569;">Author(s):</td>
-                <td style="padding: 12px 8px;">{$publication->getAuthorString()|escape}</td>
+                <td style="padding: 12px 8px;">{$authorString|default:''|escape}</td>
             </tr>
             <tr style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 12px 8px; font-weight: bold; color: #475569;">Date of Issuance:</td>
-                <td style="padding: 12px 8px;">{$certificate->issued_at->format('F d, Y')}</td>
+                <td style="padding: 12px 8px;">{$issuedDate|default:($certificate->issued_at|default:'')|escape}</td>
             </tr>
         </table>
     {else}

@@ -19,7 +19,7 @@ class AcceptanceLetterWorkflowHandler extends Handler
         parent::__construct();
         $this->addRoleAssignment(
             [Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT, Role::ROLE_ID_SITE_ADMIN],
-            ['showModal', 'previewPdf', 'downloadPdf', 'issueLetter']
+            ['showModal', 'previewPdf', 'downloadPdf', 'issueLetter', 'sendEmail']
         );
     }
 
@@ -47,11 +47,32 @@ class AcceptanceLetterWorkflowHandler extends Handler
         $context = $request->getContext();
         $template = AcceptanceTemplate::getDefaultTemplate($context->getId());
 
+        $publication = $submission ? $submission->getCurrentPublication() : null;
+        $authorString = '';
+        $primaryAuthorEmail = '';
+        if ($publication) {
+            $authors = $publication->getData('authors') ?? [];
+            $names = [];
+            foreach ($authors as $author) {
+                $names[] = $author->getFullName();
+                $email = method_exists($author, 'getEmail') ? $author->getEmail() : $author->getData('email');
+                if (!$primaryAuthorEmail && !empty($email)) {
+                    $primaryAuthorEmail = $email;
+                }
+                if ($author->getData('primaryContact') && !empty($email)) {
+                    $primaryAuthorEmail = $email;
+                }
+            }
+            $authorString = implode(', ', $names);
+        }
+
         $templateMgr = \PKP\template\PKPTemplateManager::getManager($request);
         $templateMgr->assign([
-            'submission' => $submission,
-            'template'   => $template,
-            'user'       => $request->getUser(),
+            'submission'         => $submission,
+            'template'           => $template,
+            'user'               => $request->getUser(),
+            'authorString'       => $authorString,
+            'primaryAuthorEmail' => $primaryAuthorEmail,
         ]);
 
         return new JSONMessage(true, $templateMgr->fetch($this->getTemplateResource('workflowModal.tpl')));
@@ -91,6 +112,10 @@ class AcceptanceLetterWorkflowHandler extends Handler
 
         $pdfService = new CertificatePdfService($context);
         $extra = [
+            'template'           => $template,
+            'logoPath'           => $template->logo_path,
+            'signaturePath'      => $template->signature_path,
+            'stampPath'          => $template->stamp_path,
             'dateAccepted'       => date('Y-m-d'),
             'dateIssued'         => date('Y-m-d'),
             'certificateNumber'  => $certNumber,

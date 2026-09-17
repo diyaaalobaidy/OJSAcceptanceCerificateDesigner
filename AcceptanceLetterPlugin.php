@@ -127,15 +127,44 @@ class AcceptanceLetterPlugin extends GenericPlugin
                 $publicFileManager = class_exists(\APP\file\PublicFileManager::class)
                     ? new \APP\file\PublicFileManager()
                     : new \PKP\file\PKPPublicFileManager();
+
+                $baseDir = '';
+                if (class_exists(\PKP\core\Core::class) && method_exists(\PKP\core\Core::class, 'getBaseDir')) {
+                    $baseDir = \PKP\core\Core::getBaseDir();
+                } elseif (class_exists(\Core::class) && method_exists(\Core::class, 'getBaseDir')) {
+                    $baseDir = \Core::getBaseDir();
+                } elseif (function_exists('base_path')) {
+                    $baseDir = base_path();
+                } else {
+                    $baseDir = dirname(__DIR__, 4);
+                }
+
+                $contextFilesPath = $publicFileManager->getContextFilesPath($context->getId());
+                $absDestDir = str_starts_with($contextFilesPath, '/')
+                    ? $contextFilesPath
+                    : (rtrim($baseDir, '/') . '/' . ltrim($contextFilesPath, '/'));
+
                 foreach (['logo', 'signature', 'stamp'] as $fileKey) {
                     if ($request->getUserVar('delete_' . $fileKey)) {
                         $data[$fileKey . '_path'] = null;
-                    } elseif (!empty($_FILES[$fileKey]['name'])) {
+                    } elseif (!empty($_FILES[$fileKey]['name']) && !empty($_FILES[$fileKey]['tmp_name'])) {
                         $extension = strtolower(pathinfo($_FILES[$fileKey]['name'], PATHINFO_EXTENSION));
-                        if (in_array($extension, ['png', 'jpg', 'jpeg', 'svg'])) {
+                        if (in_array($extension, ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp'])) {
                             $filename = 'acceptance_' . $fileKey . '_' . uniqid() . '.' . $extension;
-                            $publicFileManager->uploadContextFile($context->getId(), $_FILES[$fileKey]['tmp_name'], $filename);
-                            $data[$fileKey . '_path'] = $publicFileManager->getContextFilesPath($context->getId()) . '/' . $filename;
+                            if (!is_dir($absDestDir)) {
+                                @mkdir($absDestDir, 0777, true);
+                            }
+                            $absDestFile = rtrim($absDestDir, '/') . '/' . $filename;
+                            $uploaded = @move_uploaded_file($_FILES[$fileKey]['tmp_name'], $absDestFile);
+                            if (!$uploaded) {
+                                $uploaded = @copy($_FILES[$fileKey]['tmp_name'], $absDestFile);
+                            }
+                            if (!$uploaded && method_exists($publicFileManager, 'uploadContextFile')) {
+                                $uploaded = $publicFileManager->uploadContextFile($context->getId(), $fileKey, $filename);
+                            }
+                            if ($uploaded || file_exists($absDestFile)) {
+                                $data[$fileKey . '_path'] = rtrim($contextFilesPath, '/') . '/' . $filename;
+                            }
                         }
                     }
                 }

@@ -63,3 +63,12 @@ msgstr "Issuing Editor"
 
 msgid "plugins.generic.acceptanceLetter.downloadPdf"
 msgstr "Generate & Download PDF"
+
+msgid "plugins.generic.acceptanceLetter.sendEmail"
+msgstr "Send Letter to Author"
+
+msgid "plugins.generic.acceptanceLetter.emailSent"
+msgstr "Acceptance letter has been sent to author successfully."
+
+msgid "plugins.generic.acceptanceLetter.noAuthorEmail"
+msgstr "No author email address found for this submission."
