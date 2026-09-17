@@ -79,7 +79,7 @@ class AcceptanceLetterWorkflowHandler extends Handler
                 'page_size'   => 'A4',
                 'orientation' => 'portrait',
                 'locale'      => $context->getPrimaryLocale(),
-                'body_html'   => '<h2 style="text-align:center;">ACCEPTANCE LETTER</h2><p>This is to certify that the manuscript entitled <strong>{$articleTitle}</strong> authored by <strong>{$authorsList}</strong> has been formally accepted for publication in <strong>{$journalName}</strong>.</p>',
+                'body_html'   => AcceptanceTemplate::getDefaultBodyHtml(),
             ]);
         }
 

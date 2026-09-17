@@ -46,4 +46,26 @@ class AcceptanceTemplate extends Model
             ->where('is_default', true)
             ->first();
     }
+
+    /**
+     * Get the default body HTML template
+     */
+    public static function getDefaultBodyHtml(): string
+    {
+        return <<<HTML
+<h2 style="text-align: center; color: #005a9c;">OFFICIAL ACCEPTANCE LETTER</h2>
+<p>Date: {\$dateAccepted}</p>
+<p>Dear {\$authorsList},</p>
+<p>We are delighted to inform you that your manuscript titled:</p>
+<blockquote style="border-left: 3px solid #005a9c; padding-left: 10px; margin: 15px 0; font-style: italic;">
+    {\$articleTitle}
+</blockquote>
+<p>authored by <strong></strong> (Manuscript ID: <strong>#{\$submissionId}</strong>) has been formally <strong>ACCEPTED</strong> for publication in <strong>{\$journalName} ({\$journalInitials})</strong>.</p>
+<p>The paper has been thoroughly evaluated by peer reviewers in our review process and meets the standards and rigor required by our editorial board.</p>
+<p>Sincerely,<br>
+<strong>{\$editorName}</strong><br>
+<br>
+</p>
+HTML;
+    }
 }
