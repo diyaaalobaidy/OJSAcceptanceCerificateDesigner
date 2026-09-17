@@ -54,15 +54,15 @@ class AcceptanceTemplate extends Model
     {
         return <<<HTML
 <h2 style="text-align: center; color: #005a9c;">OFFICIAL ACCEPTANCE LETTER</h2>
-<p>Date: {\$dateAccepted}</p>
+<p>Date: {$dateAccepted}</p>
 <p>We are delighted to inform you that the manuscript titled:</p>
 <blockquote style="border-left: 3px solid #005a9c; padding-left: 10px; margin: 15px 0; font-style: italic;">
-    {\$articleTitle}
+    {$articleTitle}
 </blockquote>
-<p>authored by <strong>{\$authorsList}</strong> (Manuscript ID: <strong>#{\$submissionId}</strong>) has been formally <strong>ACCEPTED</strong> for publication in <strong>{\$journalName} ({\$journalInitials})</strong>.</p>
+<p>authored by <strong>{$authorsList}</strong> (Manuscript ID: <strong>#{$submissionId}</strong>) has been formally <strong>ACCEPTED</strong> for publication in <strong>{$journalName} ({$journalInitials})</strong>.</p>
 <p>The paper has been thoroughly evaluated by peer reviewers in our review process and meets the standards and rigor required by our editorial board.</p>
 <p>Sincerely,<br>
-<strong>{\$editorName}</strong><br>
+<strong>{$editorName}</strong><br>
 <br>
 </p>
 HTML;
