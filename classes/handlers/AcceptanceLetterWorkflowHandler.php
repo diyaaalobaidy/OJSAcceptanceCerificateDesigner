@@ -93,14 +93,15 @@ class AcceptanceLetterWorkflowHandler extends Handler
 
         $template = AcceptanceTemplate::getDefaultTemplate($context->getId());
         if (!$template) {
+            $loc = $context->getPrimaryLocale() ?? 'en';
             // Create fallback minimal template
             $template = new AcceptanceTemplate([
                 'context_id'  => $context->getId(),
                 'name'        => 'Default',
                 'page_size'   => 'A4',
                 'orientation' => 'portrait',
-                'locale'      => $context->getPrimaryLocale(),
-                'body_html'   => AcceptanceTemplate::getDefaultBodyHtml(),
+                'locale'      => $loc,
+                'body_html'   => AcceptanceTemplate::getDefaultBodyHtml($loc),
             ]);
         }
 
@@ -190,13 +191,15 @@ class AcceptanceLetterWorkflowHandler extends Handler
 
         $template = AcceptanceTemplate::getDefaultTemplate($context->getId());
         if (!$template) {
+            $loc = $context->getPrimaryLocale() ?? 'en';
+            // Create fallback minimal template
             $template = new AcceptanceTemplate([
                 'context_id'  => $context->getId(),
                 'name'        => 'Default',
                 'page_size'   => 'A4',
                 'orientation' => 'portrait',
-                'locale'      => $context->getPrimaryLocale(),
-                'body_html'   => AcceptanceTemplate::getDefaultBodyHtml(),
+                'locale'      => $loc,
+                'body_html'   => AcceptanceTemplate::getDefaultBodyHtml($loc),
             ]);
         }
 

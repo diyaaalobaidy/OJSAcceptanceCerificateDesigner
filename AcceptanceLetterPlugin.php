@@ -103,9 +103,12 @@ class AcceptanceLetterPlugin extends GenericPlugin
                 $template = \APP\plugins\generic\acceptanceLetter\classes\model\AcceptanceTemplate::getDefaultTemplate($context->getId());
                 $templateMgr = \PKP\template\PKPTemplateManager::getManager($request);
                 $templateMgr->assign([
-                    'template'   => $template,
-                    'variables'  => \APP\plugins\generic\acceptanceLetter\classes\service\CertificatePdfService::getSupportedVariables(),
-                    'pluginName' => $this->getName(),
+                    'template'       => $template,
+                    'variables'      => \APP\plugins\generic\acceptanceLetter\classes\service\CertificatePdfService::getSupportedVariables(),
+                    'pluginName'     => $this->getName(),
+                    'defaultBodyEn'  => \APP\plugins\generic\acceptanceLetter\classes\model\AcceptanceTemplate::getDefaultBodyHtml('en'),
+                    'defaultBodyAr'  => \APP\plugins\generic\acceptanceLetter\classes\model\AcceptanceTemplate::getDefaultBodyHtml('ar'),
+                    'currentLocale'  => $context->getPrimaryLocale() ?? 'en',
                 ]);
 
                 return new \PKP\core\JSONMessage(true, $templateMgr->fetch($this->getTemplateResource('settings.tpl')));

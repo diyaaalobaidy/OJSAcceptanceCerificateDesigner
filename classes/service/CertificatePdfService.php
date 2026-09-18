@@ -7,9 +7,10 @@ use Dompdf\Options;
 use APP\submission\Submission;
 use PKP\context\Context;
 use APP\plugins\generic\acceptanceLetter\classes\model\AcceptanceTemplate;
+use ArPHP\I18N\Arabic;
 
 // Load bundled composer dependencies if needed
-if (!class_exists(\Dompdf\Dompdf::class)) {
+if (!class_exists(\Dompdf\Dompdf::class) || !class_exists(\ArPHP\I18N\Arabic::class)) {
     $vendorAutoload = dirname(__DIR__, 2) . '/vendor/autoload.php';
     if (file_exists($vendorAutoload)) {
         require_once $vendorAutoload;
@@ -277,8 +278,7 @@ class CertificatePdfService
         .body-content blockquote {
             margin: 6px 0;
             padding: 4px 10px;
-            border-left: 3px solid #005a9c;
-            font-style: italic;
+            border-{$headerStartAlign}: 3px solid #005a9c;
             background: #f8fafc;
         }
         .signoff-section {
@@ -373,6 +373,9 @@ HTML;
             );
         }
 
+        // Process and reshape Arabic characters for correct glyph rendering and bidirectional display
+        $html = $this->processArabicHtml($html);
+
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', true);
@@ -394,6 +397,56 @@ HTML;
         $dompdf->render();
 
         return $dompdf->output();
+    }
+
+    /**
+     * Reshape Arabic text in HTML so Dompdf renders connected letters and proper RTL ordering
+     */
+    public function processArabicHtml(string $html): string
+    {
+        if (!preg_match('/[\x{0600}-\x{06FF}]/u', $html)) {
+            return $html;
+        }
+
+        if (!class_exists(\ArPHP\I18N\Arabic::class)) {
+            $vendorAutoload = dirname(__DIR__, 2) . '/vendor/autoload.php';
+            if (file_exists($vendorAutoload)) {
+                require_once $vendorAutoload;
+            }
+        }
+
+        if (!class_exists(\ArPHP\I18N\Arabic::class)) {
+            return $html;
+        }
+
+        try {
+            $dom = new \DOMDocument();
+            libxml_use_internal_errors(true);
+            $loaded = $dom->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+            libxml_clear_errors();
+
+            if (!$loaded) {
+                return $html;
+            }
+
+            $arabic = new \ArPHP\I18N\Arabic();
+            $xpath = new \DOMXPath($dom);
+            $textNodes = $xpath->query('//text()[not(ancestor::style) and not(ancestor::script)]');
+
+            foreach ($textNodes as $node) {
+                $text = $node->nodeValue;
+                if (preg_match('/[\x{0600}-\x{06FF}]/u', $text)) {
+                    $node->nodeValue = $arabic->utf8Glyphs($text, 10000, false);
+                }
+            }
+
+            $out = $dom->saveHTML();
+            $out = str_replace('<?xml encoding="UTF-8">', '', $out);
+            return html_entity_decode($out, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        } catch (\Throwable $e) {
+            error_log('[AcceptanceLetter] processArabicHtml error: ' . $e->getMessage());
+            return $html;
+        }
     }
 
     /**

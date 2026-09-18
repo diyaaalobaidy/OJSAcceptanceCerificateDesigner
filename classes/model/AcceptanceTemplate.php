@@ -48,10 +48,14 @@ class AcceptanceTemplate extends Model
     }
 
     /**
-     * Get the default body HTML template
+     * Get the default body HTML template based on locale
      */
-    public static function getDefaultBodyHtml(): string
+    public static function getDefaultBodyHtml(string $locale = 'en'): string
     {
+        if ($locale === 'ar' || str_starts_with($locale, 'ar_')) {
+            return self::getDefaultArabicBodyHtml();
+        }
+
         return <<<HTML
 <h2 style="text-align: center; color: #005a9c;">OFFICIAL ACCEPTANCE LETTER</h2>
 <p>Date: {\$dateAccepted}</p>
@@ -67,4 +71,26 @@ class AcceptanceTemplate extends Model
 </p>
 HTML;
     }
+
+    /**
+     * Get the default Arabic body HTML template
+     */
+    public static function getDefaultArabicBodyHtml(): string
+    {
+        return <<<HTML
+<h2 style="text-align: center; color: #005a9c;">شهادة قبول نشر بحث رسمي</h2>
+<p>التاريخ: {\$dateAccepted}</p>
+<p>يسر هيئة التحرير إعلامكم بقبول البحث العلمي المعنون:</p>
+<blockquote style="border-right: 3px solid #005a9c; padding-right: 10px; margin: 15px 0;">
+    {\$articleTitle}
+</blockquote>
+<p>المقدم من الباحثين: <strong>{\$authorsList}</strong> (معرف البحث: <strong>#{\$submissionId}</strong>) حيث تم <strong>قبوله نهائياً</strong> للنشر في <strong>{\$journalName} ({\$journalInitials})</strong>.</p>
+<p>وقد اجتاز البحث كافة مراحل التحكيم والمراجعة العلمية الدقيقة واستوفى المعايير المعتمدة لدى هيئة التحرير.</p>
+<p>مع خالص التحية والتقدير،<br>
+<strong>{\$editorName}</strong><br>
+<br>
+</p>
+HTML;
+    }
 }
+

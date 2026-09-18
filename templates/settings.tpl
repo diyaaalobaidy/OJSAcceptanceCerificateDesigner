@@ -133,6 +133,24 @@ function insertToken(token) {
 
 if (typeof jQuery !== 'undefined') {
     jQuery(function($) {
+        var defaultBodies = {
+            'en': {$defaultBodyEn|json_encode},
+            'ar': {$defaultBodyAr|json_encode}
+        };
+
+        $('#locale').on('change', function() {
+            var selectedLocale = $(this).val();
+            var $body = $('#bodyHtml');
+            var currentVal = $body.val().trim();
+            
+            // If empty or matches the default of another language, switch it automatically
+            if (!currentVal || currentVal === defaultBodies['en'].trim() || currentVal === defaultBodies['ar'].trim()) {
+                if (defaultBodies[selectedLocale]) {
+                    $body.val(defaultBodies[selectedLocale]);
+                }
+            }
+        });
+
         $('#acceptanceLetterForm').on('submit', function(e) {
             e.preventDefault();
             var form = this;
