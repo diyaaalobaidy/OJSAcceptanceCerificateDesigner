@@ -215,10 +215,15 @@ class CertificatePdfService
 
         $headerStartAlign = $isRtl ? 'right' : 'left';
         $headerEndAlign = $isRtl ? 'left' : 'right';
+        $subTitle = $isRtl ? 'شهادة قبول رسمية' : 'Official Acceptance Certificate';
+        $verifyText = $isRtl ? 'امسح الرمز للتحقق من الشهادة' : 'Scan to verify certificate';
+        $genText = $isRtl
+            ? "تم إصدار هذه الوثيقة آلياً بواسطة {$this->context->getLocalizedName()} بتاريخ {$extra['dateIssued']}."
+            : "Generated automatically by {$this->context->getLocalizedName()} on {$extra['dateIssued']}.";
 
         return <<<HTML
 <!DOCTYPE html>
-<html dir="{$dir}" lang="{$template->locale}">
+<html lang="{$template->locale}">
 <head>
     <meta charset="UTF-8">
     <title>Certificate of Acceptance</title>
@@ -230,11 +235,11 @@ class CertificatePdfService
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
             color: #222222;
-            line-height: 1.4;
+            line-height: 1.5;
             font-size: 12px;
-            direction: {$dir};
             margin: 0;
             padding: 0;
+            text-align: {$headerStartAlign};
         }
         .container {
             width: 100%;
@@ -243,46 +248,68 @@ class CertificatePdfService
         .header {
             border-bottom: 2px solid #005a9c;
             padding-bottom: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
             page-break-inside: avoid;
         }
-        .header-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .header-logo {
+        .header-col-start {
+            float: {$headerStartAlign};
+            width: 58%;
             text-align: {$headerStartAlign};
         }
-        .header-logo-img {
-            display: inline-block;
-            vertical-align: middle;
+        .header-col-end {
+            float: {$headerEndAlign};
+            width: 40%;
+            text-align: {$headerEndAlign};
         }
         .header-title {
-            text-align: {$headerEndAlign};
-            font-size: 15px;
+            font-size: 16px;
             font-weight: bold;
             color: #005a9c;
         }
+        .header-subtitle {
+            font-size: 11px;
+            color: #555555;
+            margin-top: 2px;
+        }
+        .clearfix {
+            clear: both;
+        }
         .body-content {
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            text-align: {$headerStartAlign};
         }
         .body-content h2 {
-            font-size: 15px;
-            margin: 0 0 8px 0;
+            font-size: 16px;
+            margin: 0 0 10px 0;
             color: #005a9c;
+            text-align: center;
         }
         .body-content p {
-            margin: 0 0 6px 0;
-            line-height: 1.4;
+            margin: 0 0 7px 0;
+            line-height: 1.5;
         }
         .body-content blockquote {
-            margin: 6px 0;
-            padding: 4px 10px;
+            margin: 8px 0;
+            padding: 6px 12px;
             border-{$headerStartAlign}: 3px solid #005a9c;
             background: #f8fafc;
+            text-align: {$headerStartAlign};
         }
         .signoff-section {
+            margin-top: 25px;
+            overflow: hidden;
             page-break-inside: avoid;
+        }
+        .signoff-editor {
+            float: {$headerStartAlign};
+            width: 58%;
+            text-align: {$headerStartAlign};
+        }
+        .signoff-qr {
+            float: {$headerEndAlign};
+            width: 40%;
+            text-align: {$headerEndAlign};
         }
         .signature-img {
             vertical-align: middle;
@@ -294,23 +321,14 @@ class CertificatePdfService
             vertical-align: middle;
             display: inline-block;
         }
-        .signoff-table {
-            width: 100%;
-            margin-top: 10px;
-            border-collapse: collapse;
-        }
-        .signoff-table td {
-            vertical-align: bottom;
-        }
-        .qr-section {
-            text-align: {$headerEndAlign};
-        }
         .footer {
             border-top: 1px solid #dddddd;
-            padding-top: 6px;
-            margin-top: 10px;
+            padding-top: 8px;
+            margin-top: 25px;
             font-size: 9px;
             color: #666666;
+            text-align: center;
+            direction: ltr;
             page-break-inside: avoid;
         }
     </style>
@@ -318,15 +336,14 @@ class CertificatePdfService
 <body>
     <div class="container">
         <div class="header">
-            <table class="header-table">
-                <tr>
-                    <td style="width: 50%; text-align: {$headerStartAlign};">{$logoHtml}</td>
-                    <td style="width: 50%; text-align: {$headerEndAlign};">
-                        <div class="header-title">{$this->context->getLocalizedName()}</div>
-                        <div style="font-size: 11px; color: #555;">Official Acceptance Certificate</div>
-                    </td>
-                </tr>
-            </table>
+            <div class="header-col-start">
+                <div class="header-title">{$this->context->getLocalizedName()}</div>
+                <div class="header-subtitle">{$subTitle}</div>
+            </div>
+            <div class="header-col-end">
+                {$logoHtml}
+            </div>
+            <div class="clearfix"></div>
         </div>
 
         <div class="body-content">
@@ -334,25 +351,22 @@ class CertificatePdfService
         </div>
 
         <div class="signoff-section">
-            <table class="signoff-table">
-                <tr>
-                    <td style="width: 60%; text-align: {$headerStartAlign};">
-                        <div><strong>{$extra['editorName']}</strong></div>
-                        <div style="color: #666; font-size: 11px;">{$extra['editorRole']}</div>
-                        <div style="margin-top: 6px;">{$signatureHtml}{$stampHtml}</div>
-                    </td>
-                    <td style="width: 40%; text-align: {$headerEndAlign};">
-                        {$extra['qrCodeImgTag']}
-                        <div style="font-size: 9px; color: #777; margin-top: 3px;">Scan to verify certificate</div>
-                        <div style="font-size: 9px; color: #777;">ID: {$extra['certificateNumber']}</div>
-                    </td>
-                </tr>
-            </table>
+            <div class="signoff-editor">
+                <div><strong>{$extra['editorName']}</strong></div>
+                <div style="color: #666; font-size: 11px;">{$extra['editorRole']}</div>
+                <div style="margin-top: 6px;">{$signatureHtml}{$stampHtml}</div>
+            </div>
+            <div class="signoff-qr">
+                {$extra['qrCodeImgTag']}
+                <div style="font-size: 9px; color: #777; margin-top: 3px;">{$verifyText}</div>
+                <div style="font-size: 9px; color: #777;">ID: {$extra['certificateNumber']}</div>
+            </div>
+            <div class="clearfix"></div>
         </div>
 
         <div class="footer">
-            <div style="text-align: center;">
-                Generated automatically by {$this->context->getLocalizedName()} on {$extra['dateIssued']}. 
+            <div>
+                {$genText} 
                 Verification URL: {$extra['verificationUrl']}
             </div>
         </div>
@@ -436,7 +450,8 @@ HTML;
             foreach ($textNodes as $node) {
                 $text = $node->nodeValue;
                 if (preg_match('/[\x{0600}-\x{06FF}]/u', $text)) {
-                    $node->nodeValue = $arabic->utf8Glyphs($text, 10000, false);
+                    $shaped = $arabic->utf8Glyphs($text, 10000, false);
+                    $node->nodeValue = $this->fixBiDiGlyphReversals($shaped);
                 }
             }
 
@@ -447,6 +462,33 @@ HTML;
             error_log('[AcceptanceLetter] processArabicHtml error: ' . $e->getMessage());
             return $html;
         }
+    }
+
+    /**
+     * Fix BiDi artefacts caused by full-string Arabic glyph reversal:
+     * - Dates: DD-MM-YYYY inverted back to YYYY-MM-DD
+     * - Numbered IDs: 1024# inverted back to #1024
+     * - English acronyms / words in parens: word).) or word)) inverted back to (word). or (word)
+     */
+    protected function fixBiDiGlyphReversals(string $text): string
+    {
+        // 1. Fix date reversals like 18-09-2026 back to 2026-09-18
+        $text = preg_replace_callback('/\b(\d{2})([-\/])(\d{2})([-\/])(\d{4})\b/', function ($m) {
+            return $m[5] . $m[2] . $m[3] . $m[4] . $m[1];
+        }, $text);
+
+        // 2. Fix inverted hash numbers like 1024# back to #1024
+        $text = preg_replace('/(\d+)#/', '#$1', $text);
+
+        // 3. Fix inverted parentheses around ASCII words/acronyms (e.g. RJES).) -> (RJES). and RJES)) -> (RJES))
+        $text = preg_replace_callback('/([A-Za-z0-9_\-]+)\)\.\)/', function ($m) {
+            return '(' . $m[1] . ').';
+        }, $text);
+        $text = preg_replace_callback('/([A-Za-z0-9_\-]+)\)\)/', function ($m) {
+            return '(' . $m[1] . ')';
+        }, $text);
+
+        return $text;
     }
 
     /**
