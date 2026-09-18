@@ -78,36 +78,24 @@ HTML;
     public static function getDefaultArabicBodyHtml(): string
     {
         return <<<HTML
-<h2 style="text-align: center; color: #005a9c;">شهادة قبول نشر بحث علمي</h2>
-<p style="text-align: right;">التاريخ: {\$dateAccepted}</p>
-<p>يسر هيئة التحرير إعلامكم بقبول البحث العلمي المعنون:</p>
-<blockquote style="border-right: 3px solid #005a9c; padding-right: 10px; margin: 12px 0; background: #f8fafc; text-align: right;">
-    {\$articleTitle}
-</blockquote>
-<p>المقدم من الباحثين للنشر في المجلة وفق البيانات الموضحة أدناه:</p>
-<table style="width: 100%; border-collapse: collapse; margin: 14px 0;">
-    <tr>
-        <td style="width: 75%; text-align: right; padding: 4px 6px;"><strong>{\$authorsList}</strong></td>
-        <td style="width: 25%; font-weight: bold; text-align: right; padding: 4px 6px;">:الباحثون</td>
-    </tr>
-    <tr>
-        <td style="width: 75%; text-align: right; padding: 4px 6px;"><strong>#{\$submissionId}</strong></td>
-        <td style="width: 25%; font-weight: bold; text-align: right; padding: 4px 6px;">:معرف البحث</td>
-    </tr>
-    <tr>
-        <td style="width: 75%; text-align: right; padding: 4px 6px;"><strong>{\$journalName} ({\$journalInitials})</strong></td>
-        <td style="width: 25%; font-weight: bold; text-align: right; padding: 4px 6px;">:مجلة النشر</td>
-    </tr>
-    <tr>
-        <td style="width: 75%; text-align: right; padding: 4px 6px;">{\$dateAccepted}</td>
-        <td style="width: 25%; font-weight: bold; text-align: right; padding: 4px 6px;">:تاريخ القبول</td>
-    </tr>
-</table>
-<p>وقد اجتاز البحث كافة مراحل التحكيم والمراجعة العلمية الدقيقة واستوفى المعايير والشروط المعتمدة لدى هيئة التحرير في المجلة.</p>
-<p>مع خالص التحية والتقدير،<br>
-<strong>{\$editorName}</strong><br>
-{\$editorRole}
-</p>
+<div dir="rtl" style="text-align: right; direction: rtl; line-height: 1.9; max-width: 760px; margin: 30px auto; padding: 42px 48px; color: #243447; background: #ffffff; border: 1px solid #dbe7f0; border-top: 7px solid #005a9c; border-radius: 14px; box-shadow: 0 8px 24px rgba(0, 54, 93, 0.10);">
+    <h2 style="text-align: center; color: #005a9c; margin: 0 0 24px; font-size: 26px;">شهادة قبول نشر بحث علمي</h2>
+    <div style="height: 2px; width: 90px; margin: 0 auto 28px; background: #d4a84f;"></div>
+    <p style="margin: 0 0 12px; color: #64748b; font-size: 14px;">التاريخ: <strong style="color: #243447;">{\$dateAccepted}</strong></p>
+    <p style="margin-bottom: 4px;">يسر هيئة تحرير مجلة</p>
+    <p style="text-align: center; color: #005a9c; font-size: 21px; margin: 0 0 18px;"><strong>{\$journalName}</strong></p>
+    <p style="margin-bottom: 8px;">إعلامكم بقبول البحث العلمي المعنون:</p>
+    <blockquote style="border-right: 4px solid #d4a84f; padding: 14px 14px; margin-bottom: 12px; background-color: #f5f9fc; color: #005a9c; font-size: 18px; font-weight: bold; border-radius: 5px 0 0 5px; text-align: center;">
+        {\$articleTitle}
+    </blockquote>
+    <p style="margin: 0 0 8px;">المقدم من الباحثين:</p>
+    <div style="background: #fafbfc; border: 1px solid #e7eef4; border-radius: 8px; padding: 15px 18px; margin-bottom: 12px; text-align: right;">
+        <p style="margin: 0; color: #243447; text-align: center;"><strong>{\$authorsList}</strong></p>
+    </div>
+    <p style="margin-bottom: 12px;">حيث تم قبوله نهائياً للنشر في مجلتنا وقد اجتاز البحث كافة مراحل التحكيم والمراجعة العلمية الدقيقة</p>
+    <p style="margin-bottom: 12px;">واستوفى المعايير المعتمدة لدى هيئة التحرير.</p>
+    <p style="margin: 0; color: #005a9c; font-weight: bold;">مع خالص التحية والتقدير،</p>
+</div>
 HTML;
     }
 }
