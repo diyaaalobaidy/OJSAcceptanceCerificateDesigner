@@ -445,13 +445,106 @@ HTML;
 
             $arabic = new \ArPHP\I18N\Arabic();
             $xpath = new \DOMXPath($dom);
-            $textNodes = $xpath->query('//text()[not(ancestor::style) and not(ancestor::script)]');
 
+            // Target block-level and container elements to reshape sentences as cohesive visual units,
+            // preserving inline markup (<strong>, <em>, <span>, <a>, etc.) and line breaks (<br>).
+            $blockQuery = '//p | //li | //blockquote | //h1 | //h2 | //h3 | //h4 | //h5 | //h6 | //td | //th | //div[not(div or p or ul or ol or table or h1 or h2 or h3 or h4 or h5 or h6 or blockquote)]';
+            $blockNodes = $xpath->query($blockQuery);
+
+            $processedNodes = new \SplObjectStorage();
+
+            foreach ($blockNodes as $node) {
+                // Skip script/style elements
+                if (in_array(strtolower($node->nodeName), ['style', 'script'])) {
+                    continue;
+                }
+
+                $textVal = $node->textContent;
+                if (!preg_match('/[\x{0600}-\x{06FF}]/u', $textVal)) {
+                    continue;
+                }
+
+                // Extract the inner HTML of this block node
+                $innerHtml = '';
+                foreach ($node->childNodes as $child) {
+                    $innerHtml .= $dom->saveHTML($child);
+                }
+
+                // Process line-by-line (split on <br>) so multi-line blocks don't swap lines
+                $lines = preg_split('/(<br\s*\/?>)/i', $innerHtml, -1, PREG_SPLIT_DELIM_CAPTURE);
+                $shapedHtml = '';
+
+                foreach ($lines as $line) {
+                    if (preg_match('/^<br\s*\/?>$/i', $line)) {
+                        $shapedHtml .= $line;
+                        continue;
+                    }
+
+                    if (!preg_match('/[\x{0600}-\x{06FF}]/u', $line)) {
+                        $shapedHtml .= $line;
+                        continue;
+                    }
+
+                    // Tokenize HTML tags so they are not altered or scrambled by utf8Glyphs
+                    $tags = [];
+                    $tokenized = preg_replace_callback('/<[^>]+>/', function ($m) use (&$tags) {
+                        $idx = count($tags);
+                        $tags[] = $m[0];
+                        return "___HTAG{$idx}___";
+                    }, $line);
+
+                    // Reshape Arabic glyphs and reverse direction for RTL rendering
+                    $shaped = $arabic->utf8Glyphs($tokenized, 10000, false);
+                    $shaped = $this->fixBiDiGlyphReversals($shaped);
+
+                    // Restore HTML tags
+                    foreach ($tags as $idx => $origTag) {
+                        $shaped = str_replace("___HTAG{$idx}___", $origTag, $shaped);
+                    }
+
+                    $shapedHtml .= $shaped;
+                }
+
+                // Replace the block node's contents with the shaped fragment
+                while ($node->hasChildNodes()) {
+                    $node->removeChild($node->firstChild);
+                }
+
+                $fragDom = new \DOMDocument();
+                libxml_use_internal_errors(true);
+                $fragDom->loadHTML('<?xml encoding="UTF-8"><body>' . $shapedHtml . '</body>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+                libxml_clear_errors();
+
+                $body = $fragDom->getElementsByTagName('body')->item(0);
+                if ($body) {
+                    foreach ($body->childNodes as $fragChild) {
+                        $imported = $dom->importNode($fragChild, true);
+                        $node->appendChild($imported);
+                    }
+                }
+
+                $processedNodes->attach($node);
+            }
+
+            // Fallback for any standalone text nodes outside the matched block elements
+            $textNodes = $xpath->query('//text()[not(ancestor::style) and not(ancestor::script)]');
             foreach ($textNodes as $node) {
-                $text = $node->nodeValue;
-                if (preg_match('/[\x{0600}-\x{06FF}]/u', $text)) {
-                    $shaped = $arabic->utf8Glyphs($text, 10000, false);
-                    $node->nodeValue = $this->fixBiDiGlyphReversals($shaped);
+                if (preg_match('/[\x{0600}-\x{06FF}]/u', $node->nodeValue)) {
+                    // Check if an ancestor was already processed
+                    $curr = $node->parentNode;
+                    $alreadyDone = false;
+                    while ($curr) {
+                        if ($processedNodes->contains($curr)) {
+                            $alreadyDone = true;
+                            break;
+                        }
+                        $curr = $curr->parentNode;
+                    }
+
+                    if (!$alreadyDone) {
+                        $shaped = $arabic->utf8Glyphs($node->nodeValue, 10000, false);
+                        $node->nodeValue = $this->fixBiDiGlyphReversals($shaped);
+                    }
                 }
             }
 
@@ -468,7 +561,7 @@ HTML;
      * Fix BiDi artefacts caused by full-string Arabic glyph reversal:
      * - Dates: DD-MM-YYYY inverted back to YYYY-MM-DD
      * - Numbered IDs: 1024# inverted back to #1024
-     * - English acronyms / words in parens: word).) or word)) inverted back to (word). or (word)
+     * - Parentheses around Latin/alphanumeric tokens: e.g. )text( or text).)
      */
     protected function fixBiDiGlyphReversals(string $text): string
     {
@@ -480,7 +573,10 @@ HTML;
         // 2. Fix inverted hash numbers like 1024# back to #1024
         $text = preg_replace('/(\d+)#/', '#$1', $text);
 
-        // 3. Fix inverted parentheses around ASCII words/acronyms (e.g. RJES).) -> (RJES). and RJES)) -> (RJES))
+        // 3. Fix inverted parentheses around ASCII words/acronyms/numbers (e.g. )#62331( -> (#62331), )TEST( -> (TEST), word).) -> (word).)
+        $text = preg_replace_callback('/\)([^()\x{0600}-\x{06FF}]+)\(/u', function ($m) {
+            return '(' . $m[1] . ')';
+        }, $text);
         $text = preg_replace_callback('/([A-Za-z0-9_\-]+)\)\.\)/', function ($m) {
             return '(' . $m[1] . ').';
         }, $text);
