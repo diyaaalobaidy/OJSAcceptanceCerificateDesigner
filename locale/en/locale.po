@@ -72,3 +72,7 @@ msgstr "Acceptance letter has been sent to author successfully."
 
 msgid "plugins.generic.acceptanceLetter.noAuthorEmail"
 msgstr "No author email address found for this submission."
+
+msgid "plugins.generic.acceptanceLetter.notEligible"
+msgstr "Acceptance certificates can only be issued for articles in Copyediting, Production, or Published."
+

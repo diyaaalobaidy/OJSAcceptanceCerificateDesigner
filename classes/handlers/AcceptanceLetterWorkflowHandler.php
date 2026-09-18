@@ -19,7 +19,7 @@ class AcceptanceLetterWorkflowHandler extends Handler
         parent::__construct();
         $this->addRoleAssignment(
             [Role::ROLE_ID_MANAGER, Role::ROLE_ID_SUB_EDITOR, Role::ROLE_ID_ASSISTANT, Role::ROLE_ID_SITE_ADMIN],
-            ['showModal', 'previewPdf', 'downloadPdf', 'issueLetter', 'sendEmail']
+            ['showModal', 'previewPdf', 'downloadPdf', 'issueLetter', 'sendEmail', 'checkEligibility']
         );
     }
 
@@ -32,6 +32,43 @@ class AcceptanceLetterWorkflowHandler extends Handler
             'submissionId'
         ));
         return parent::authorize($request, $args, $roleAssignments);
+    }
+
+    /**
+     * Check if submission is in Copyediting (stage 4), Production (stage 5), or Published (status 3)
+     */
+    protected function isSubmissionEligible($submission): bool
+    {
+        if (!$submission) {
+            return false;
+        }
+
+        $stageId = (int) $submission->getData('stageId');
+        $status = (int) $submission->getData('status');
+
+        // Stage 4: Editing / Copyediting
+        // Stage 5: Production
+        // Status 3: STATUS_PUBLISHED
+        $isCopyeditingOrProduction = in_array($stageId, [4, 5], true);
+        $isPublished = ($status === 3);
+
+        return ($isCopyeditingOrProduction || $isPublished);
+    }
+
+    /**
+     * AJAX endpoint to check if acceptance certificate actions are allowed for a submission
+     */
+    public function checkEligibility($args, $request): JSONMessage
+    {
+        $submission = $this->getAuthorizedContextObject(Application::ASSOC_TYPE_SUBMISSION);
+        $eligible = $this->isSubmissionEligible($submission);
+
+        return new JSONMessage(true, [
+            'submissionId' => $submission ? $submission->getId() : null,
+            'eligible'     => $eligible,
+            'stageId'      => $submission ? (int) $submission->getData('stageId') : null,
+            'status'       => $submission ? (int) $submission->getData('status') : null,
+        ]);
     }
 
     /**
@@ -90,6 +127,12 @@ class AcceptanceLetterWorkflowHandler extends Handler
         $submission = $this->getAuthorizedContextObject(Application::ASSOC_TYPE_SUBMISSION);
         $context = $request->getContext();
         $user = $request->getUser();
+
+        if (!$this->isSubmissionEligible($submission)) {
+            header('HTTP/1.1 403 Forbidden');
+            echo 'Acceptance certificates are only available for articles in Copyediting, Production, or Published.';
+            exit;
+        }
 
         $template = AcceptanceTemplate::getDefaultTemplate($context->getId());
         if (!$template) {
@@ -160,6 +203,11 @@ class AcceptanceLetterWorkflowHandler extends Handler
         $submission = $this->getAuthorizedContextObject(Application::ASSOC_TYPE_SUBMISSION);
         $context = $request->getContext();
         $user = $request->getUser();
+
+        if (!$this->isSubmissionEligible($submission)) {
+            return new JSONMessage(false, __('plugins.generic.acceptanceLetter.notEligible') ?: 'Acceptance certificates are only available for articles in Copyediting, Production, or Published.');
+        }
+
         $publication = $submission ? $submission->getCurrentPublication() : null;
 
         if (!$publication) {

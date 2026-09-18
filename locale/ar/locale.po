@@ -72,3 +72,7 @@ msgstr "تم إرسال خطاب القبول إلى الباحث بنجاح."
 
 msgid "plugins.generic.acceptanceLetter.noAuthorEmail"
 msgstr "لم يتم العثور على عنوان بريد إلكتروني للباحث في هذا البحث."
+
+msgid "plugins.generic.acceptanceLetter.notEligible"
+msgstr "لا يمكن إصدار شهادة القبول إلا للأبحاث التي في مرحلة التدقيق اللغوي، أو الإنتاج، أو المنشورة."
+
