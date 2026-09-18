@@ -214,24 +214,24 @@
                 container.id = 'pkp-acceptance-letter-floating-container';
                 container.style.cssText = 'position: fixed; bottom: 25px; right: 25px; z-index: 999999; display: flex; gap: 8px; align-items: center;';
 
-                var floatBtn = document.createElement('a');
-                floatBtn.id = 'pkp-acceptance-letter-floating-btn';
-                floatBtn.href = downloadUrl;
-                floatBtn.target = '_blank';
-                floatBtn.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 9px 16px; background: #006798; color: #ffffff; border-radius: 25px; font-weight: 600; font-size: 13px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid #ffffff; cursor: pointer;';
-                floatBtn.innerHTML = '<span>📜</span> Acceptance Certificate';
-                floatBtn.title = 'Download Acceptance Certificate PDF';
-                container.appendChild(floatBtn);
+                // var floatBtn = document.createElement('a');
+                // floatBtn.id = 'pkp-acceptance-letter-floating-btn';
+                // floatBtn.href = downloadUrl;
+                // floatBtn.target = '_blank';
+                // floatBtn.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 9px 16px; background: #006798; color: #ffffff; border-radius: 25px; font-weight: 600; font-size: 13px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid #ffffff; cursor: pointer;';
+                // floatBtn.innerHTML = '<span>📜</span> Acceptance Certificate';
+                // floatBtn.title = 'Download Acceptance Certificate PDF';
+                // container.appendChild(floatBtn);
 
-                var floatEmailBtn = document.createElement('button');
-                floatEmailBtn.id = 'pkp-acceptance-letter-floating-email-btn';
-                floatEmailBtn.type = 'button';
-                floatEmailBtn.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 9px 16px; background: #0284c7; color: #ffffff; border-radius: 25px; font-weight: 600; font-size: 13px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid #ffffff; cursor: pointer;';
-                floatEmailBtn.innerHTML = '<span>✉️</span> Send Acceptance Certificate to Author';
-                floatEmailBtn.title = 'Send Acceptance Certificate directly to author via email';
-                floatEmailBtn.onclick = function() {
-                    triggerSendEmail(floatEmailBtn);
-                };
+                // var floatEmailBtn = document.createElement('button');
+                // floatEmailBtn.id = 'pkp-acceptance-letter-floating-email-btn';
+                // floatEmailBtn.type = 'button';
+                // floatEmailBtn.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 9px 16px; background: #0284c7; color: #ffffff; border-radius: 25px; font-weight: 600; font-size: 13px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid #ffffff; cursor: pointer;';
+                // floatEmailBtn.innerHTML = '<span>✉️</span> Send Acceptance Certificate to Author';
+                // floatEmailBtn.title = 'Send Acceptance Certificate directly to author via email';
+                // floatEmailBtn.onclick = function() {
+                //     triggerSendEmail(floatEmailBtn);
+                // };
                 container.appendChild(floatEmailBtn);
 
                 document.body.appendChild(container);
