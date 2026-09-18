@@ -1,5 +1,5 @@
 /**
- * Acceptance Letter Designer Plugin - Workflow UI Integration
+ * Acceptance Certificate Designer Plugin - Workflow UI Integration
  * Specifically optimized for OJS 3.5 Tailwind/SideModal Workflow Header
  */
 (function() {
@@ -60,7 +60,7 @@
         var sendEmailUrl = '/index.php/' + journalPath + '/acceptanceWorkflow/sendEmail?submissionId=' + submissionId;
 
         function triggerSendEmail(btnEl) {
-            if (!confirm('Send the official acceptance letter and certificate directly to the author via email?')) {
+            if (!confirm('Send the official acceptance certificate and certificate directly to the author via email?')) {
                 return;
             }
             var origHtml = btnEl.innerHTML;
@@ -78,7 +78,7 @@
                 btnEl.disabled = false;
                 btnEl.innerHTML = origHtml;
                 if (data && data.status === true) {
-                    var msg = (data.content && data.content.message) ? data.content.message : 'Acceptance letter sent successfully!';
+                    var msg = (data.content && data.content.message) ? data.content.message : 'Acceptance certificate sent successfully!';
                     if (window.pkp && pkp.eventBus) {
                         pkp.eventBus.$emit('notify', msg, 'success');
                     } else {
@@ -111,8 +111,8 @@
                 // Exact matching OJS 3.5 Tailwind button classes
                 btn.className = 'pkpButton inline-flex relative items-center gap-x-1 text-lg-semibold text-primary border-light hover:text-hover disabled:text-disabled bg-secondary py-[0.4375rem] px-3 border rounded';
                 btn.style.cssText = 'text-decoration: none; cursor: pointer;';
-                btn.innerHTML = '<span>📜</span> Acceptance Letter';
-                btn.title = 'Generate & Download Official Acceptance Letter (PDF)';
+                btn.innerHTML = '<span>📜</span> Acceptance Certificate';
+                btn.title = 'Generate & Download Official Acceptance Certificate (PDF)';
 
                 headerBar.appendChild(btn);
                 console.log('[AcceptanceLetter] Attached button to top header for submission:', submissionId);
@@ -131,7 +131,7 @@
                 emailBtn.className = 'pkpButton inline-flex relative items-center gap-x-1 text-lg-semibold text-primary border-light hover:text-hover disabled:text-disabled bg-secondary py-[0.4375rem] px-3 border rounded';
                 emailBtn.style.cssText = 'text-decoration: none; cursor: pointer;';
                 emailBtn.innerHTML = '<span>✉️</span> Send Letter to Author';
-                emailBtn.title = 'Send official acceptance letter and certificate directly to author via email';
+                emailBtn.title = 'Send official acceptance certificate and certificate directly to author via email';
                 emailBtn.onclick = function() {
                     triggerSendEmail(emailBtn);
                 };
@@ -151,7 +151,7 @@
             floatBtn.href = downloadUrl;
             floatBtn.target = '_blank';
             floatBtn.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 9px 16px; background: #006798; color: #ffffff; border-radius: 25px; font-weight: 600; font-size: 13px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid #ffffff; cursor: pointer;';
-            floatBtn.innerHTML = '<span>📜</span> Acceptance Letter';
+            floatBtn.innerHTML = '<span>📜</span> Acceptance Certificate';
             floatBtn.title = 'Download Acceptance Certificate PDF';
             container.appendChild(floatBtn);
 
@@ -159,8 +159,8 @@
             floatEmailBtn.id = 'pkp-acceptance-letter-floating-email-btn';
             floatEmailBtn.type = 'button';
             floatEmailBtn.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 9px 16px; background: #0284c7; color: #ffffff; border-radius: 25px; font-weight: 600; font-size: 13px; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid #ffffff; cursor: pointer;';
-            floatEmailBtn.innerHTML = '<span>✉️</span> Send to Author';
-            floatEmailBtn.title = 'Send Acceptance Letter directly to author via email';
+            floatEmailBtn.innerHTML = '<span>✉️</span> Send Acceptance Certificate to Author';
+            floatEmailBtn.title = 'Send Acceptance Certificate directly to author via email';
             floatEmailBtn.onclick = function() {
                 triggerSendEmail(floatEmailBtn);
             };
