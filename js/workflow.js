@@ -130,7 +130,7 @@
                 emailBtn.type = 'button';
                 emailBtn.className = 'pkpButton inline-flex relative items-center gap-x-1 text-lg-semibold text-primary border-light hover:text-hover disabled:text-disabled bg-secondary py-[0.4375rem] px-3 border rounded';
                 emailBtn.style.cssText = 'text-decoration: none; cursor: pointer;';
-                emailBtn.innerHTML = '<span>✉️</span> Send Letter to Author';
+                emailBtn.innerHTML = '<span>✉️</span> Send Acceptance Certificate to Author';
                 emailBtn.title = 'Send official acceptance certificate and certificate directly to author via email';
                 emailBtn.onclick = function() {
                     triggerSendEmail(emailBtn);

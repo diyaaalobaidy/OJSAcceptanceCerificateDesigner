@@ -65,7 +65,7 @@ msgid "plugins.generic.acceptanceLetter.downloadPdf"
 msgstr "Generate & Download PDF"
 
 msgid "plugins.generic.acceptanceLetter.sendEmail"
-msgstr "Send Letter to Author"
+msgstr "Send Acceptance Certificate to Author"
 
 msgid "plugins.generic.acceptanceLetter.emailSent"
 msgstr "Acceptance letter has been sent to author successfully."
