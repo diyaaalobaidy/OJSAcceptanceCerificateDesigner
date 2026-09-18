@@ -83,12 +83,20 @@ plugins/generic/acceptanceLetter/
 ## Installation Guide
 
 ### Step 1: Deploy Plugin to OJS Directory
-Place or clone the plugin into your OJS installation under `plugins/generic/acceptanceLetter`:
+Clone the repository directly into your OJS installation under `plugins/generic/acceptanceLetter` (the target folder **must** be named `acceptanceLetter`):
 
 ```bash
-# Destination directory MUST be named 'acceptanceLetter'
-cp -r /path/to/AcceptanceCerificateDesigner <path_to_ojs>/plugins/generic/acceptanceLetter
+# Navigate to your OJS installation directory
+cd <path_to_ojs>/plugins/generic
+
+# Clone the repository into the 'acceptanceLetter' folder
+git clone https://github.com/diyaaalobaidy/OJSAcceptanceCerificateDesigner acceptanceLetter
 ```
+
+> **Note:** If you already downloaded or extracted the folder locally, ensure the destination directory inside `plugins/generic/` is named exactly `acceptanceLetter`:
+> ```bash
+> cp -r /path/to/AcceptanceCerificateDesigner <path_to_ojs>/plugins/generic/acceptanceLetter
+> ```
 
 ### Step 2: Install Composer Dependencies
 Navigate into the plugin directory and run Composer to install `dompdf` and `php-qrcode`:
