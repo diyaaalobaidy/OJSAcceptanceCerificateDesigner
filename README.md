@@ -186,29 +186,82 @@ The portal displays:
 
 ---
 
-## Supported Dynamic Tokens
+## Supported Dynamic Tokens (OJS 3.5 Documented Fields)
 
+### Manuscript & Metadata
 | Token | Description |
 | :--- | :--- |
-| `{$submissionId}` | Manuscript numeric submission ID |
-| `{$articleTitle}` | Full localized manuscript title |
-| `{$authorsList}` | Full list of authors separated by commas |
-| `{$primaryAuthor}` | First / corresponding author name |
-| `{$sectionTitle}` | Journal section (e.g., Articles, Review Papers) |
-| `{$dateAccepted}` | Formal decision acceptance date |
-| `{$dateIssued}` | Certificate generation date |
-| `{$certificateNumber}` | Unique verification ID (e.g., `ACC-2026-1-45-A1B2`) |
+| `{$submissionId}` | Manuscript numeric submission ID (e.g. `1024`) |
+| `{$articleTitle}` | Localized title of the manuscript |
+| `{$articleFullTitle}` | Full title including prefix and subtitle |
+| `{$articlePrefix}` | Title prefix (e.g., *The*, *A*) |
+| `{$articleSubtitle}` | Manuscript subtitle |
+| `{$articleAbstract}` | Clean plain-text abstract of the article |
+| `{$sectionTitle}` | Journal section name (e.g., *Articles*, *Review Papers*) |
+| `{$doi}` | Digital Object Identifier (DOI) assigned to the article |
+| `{$pages}` | Page range in issue (e.g., `101-118`) |
+| `{$articleNumber}` | Electronic article location / e-ID |
+| `{$keywords}` | Article keywords separated by commas |
+| `{$disciplines}` | Disciplines of study separated by commas |
+| `{$subjects}` | Subject classification terms |
+| `{$supportingAgencies}` | Research funding or supporting agency details |
+| `{$licenseUrl}` | URL link to article distribution license (e.g. CC-BY) |
+| `{$copyrightHolder}` | Name of designated copyright holder |
+| `{$copyrightYear}` | Copyright year |
+| `{$urlPublished}` | Public article landing page URL |
+
+### Key Dates
+| Token | Description |
+| :--- | :--- |
+| `{$dateAccepted}` | Formal editorial acceptance date (from decision records or publication) |
+| `{$dateSubmitted}` | Date the manuscript was first submitted to the journal |
+| `{$dateLastActivity}` | Timestamp of the latest recorded workflow activity |
+| `{$datePublished}` | Date of publication (if already published or scheduled) |
+| `{$dateIssued}` | Date this acceptance certificate/letter was generated |
+
+### Authors & Affiliations
+| Token | Description |
+| :--- | :--- |
+| `{$authorsList}` | Full list of author names separated by commas |
+| `{$authorsAffiliations}` | All authors with their institutional affiliations |
+| `{$primaryAuthor}` | First / primary corresponding author full name |
+| `{$primaryAuthorEmail}` | Email address of the primary contact author |
+| `{$primaryAuthorAffiliation}` | Institutional / academic affiliation of primary author |
+| `{$primaryAuthorOrcid}` | ORCID identifier of primary author |
+
+### Issue & Volume (When Scheduled / Published)
+| Token | Description |
+| :--- | :--- |
+| `{$issueIdentification}` | Complete issue string (e.g., `Vol. 10 No. 2 (2025)`) |
+| `{$issueTitle}` | Title of the assigned issue |
+| `{$issueVolume}` | Issue volume number |
+| `{$issueNumber}` | Issue number |
+| `{$issueYear}` | Issue publication year |
+
+### Journal & Publisher
+| Token | Description |
+| :--- | :--- |
 | `{$journalName}` | Full name of the issuing journal |
 | `{$journalInitials}` | Journal acronym or initials |
 | `{$issn}` | Online or Print ISSN |
+| `{$onlineIssn}` | Online ISSN |
+| `{$printIssn}` | Print ISSN |
+| `{$publisherInstitution}` | Publisher institution or sponsoring body |
+| `{$journalUrl}` | Public homepage web address of the journal |
+| `{$contactName}` | Principal journal contact name |
+| `{$contactEmail}` | Principal journal contact email address |
+
+### Certificate, Verification & Graphics
+| Token | Description |
+| :--- | :--- |
+| `{$certificateNumber}` | Unique verification ID (e.g., `ACC-2026-1-45-A1B2`) |
 | `{$editorName}` | Name of the issuing editor or contact person |
-| `{$editorRole}` | Editorial title (e.g., Editor-in-Chief) |
-| `{$doi}` | Article DOI (if registered or assigned) |
+| `{$editorRole}` | Editorial title (e.g., *Editor-in-Chief*) |
+| `{$verificationUrl}` | Plain text public verification web link |
 | `{$qrCode}` | Scannable QR code element linking to verification page |
-| `{$verificationUrl}` | Plain text verification web link |
-| `{$headerLogo}` | Official journal logo image tag |
-| `{$editorSignature}` | Official editor signature image tag |
-| `{$journalSeal}` | Journal official seal / stamp image tag |
+| `{$headerLogo}` | Official journal logo image element |
+| `{$editorSignature}` | Official editor signature image element |
+| `{$journalSeal}` | Journal official seal / stamp image element |
 
 ---
 

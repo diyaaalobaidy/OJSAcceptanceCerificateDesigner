@@ -32,26 +32,206 @@ class CertificatePdfService
     public static function getSupportedVariables(): array
     {
         return [
-            '{$journalName}'        => 'Full name of the journal',
-            '{$journalInitials}'    => 'Journal initials or acronym',
-            '{$issn}'               => 'Online / Print ISSN of the journal',
-            '{$submissionId}'       => 'Manuscript submission ID',
-            '{$articleTitle}'       => 'Accepted article title',
-            '{$authorsList}'        => 'All author names separated by commas',
-            '{$primaryAuthor}'      => 'Primary / corresponding author name',
-            '{$sectionTitle}'       => 'Journal section name (e.g. Articles, Reviews)',
-            '{$dateAccepted}'       => 'Date the submission was accepted',
-            '{$dateIssued}'         => 'Date this acceptance letter is generated',
-            '{$certificateNumber}'  => 'Unique official certificate identification number',
-            '{$editorName}'         => 'Name of issuing editor or Editor-in-Chief',
-            '{$editorRole}'         => 'Title / Role of issuing editor',
-            '{$doi}'                => 'Assigned DOI (if available)',
-            '{$verificationUrl}'    => 'URL link to publicly verify authenticity',
-            '{$qrCode}'             => 'QR code image linking to verification page',
-            '{$headerLogo}'         => 'Official Header Logo image',
-            '{$editorSignature}'    => 'Editor Signature image',
-            '{$journalSeal}'        => 'Journal Official Seal / Stamp image',
+            // Manuscript & Metadata
+            '{$submissionId}'           => 'Manuscript submission ID (e.g. 1024)',
+            '{$articleTitle}'           => 'Accepted article title',
+            '{$articleFullTitle}'       => 'Full title including prefix and subtitle',
+            '{$articlePrefix}'          => 'Article title prefix (e.g. The, A)',
+            '{$articleSubtitle}'        => 'Article subtitle',
+            '{$articleAbstract}'        => 'Article abstract text',
+            '{$sectionTitle}'           => 'Journal section name (e.g. Articles, Reviews)',
+            '{$doi}'                    => 'Assigned Digital Object Identifier (DOI)',
+            '{$pages}'                  => 'Publication page range (e.g. 1-15)',
+            '{$articleNumber}'          => 'Electronic article number / e-location ID',
+            '{$keywords}'               => 'Article keywords separated by commas',
+            '{$disciplines}'            => 'Academic disciplines of the submission',
+            '{$subjects}'               => 'Subject classifications of the article',
+            '{$supportingAgencies}'     => 'Research funding and supporting agencies',
+            '{$licenseUrl}'             => 'URL of the article publication license',
+            '{$copyrightHolder}'        => 'Copyright holder name',
+            '{$copyrightYear}'          => 'Copyright year',
+            '{$urlPublished}'           => 'Public URL of the published article',
+
+            // Key Dates
+            '{$dateAccepted}'           => 'Date the submission was formally accepted',
+            '{$dateSubmitted}'          => 'Date the manuscript was submitted to journal',
+            '{$dateLastActivity}'       => 'Date of the most recent activity on submission',
+            '{$datePublished}'          => 'Date the article was published',
+            '{$dateIssued}'             => 'Date this acceptance certificate is generated',
+
+            // Authors & Contributors
+            '{$authorsList}'            => 'All author names separated by commas',
+            '{$authorsAffiliations}'    => 'All authors formatted with institutional affiliations',
+            '{$primaryAuthor}'          => 'Primary / corresponding author full name',
+            '{$primaryAuthorEmail}'     => 'Email address of primary corresponding author',
+            '{$primaryAuthorAffiliation}'=> 'Institutional affiliation of primary author',
+            '{$primaryAuthorOrcid}'     => 'ORCID identifier of primary author',
+
+            // Issue & Volume
+            '{$issueIdentification}'    => 'Full issue identification (e.g. Vol. 10 No. 2 (2025))',
+            '{$issueTitle}'             => 'Title of the scheduled or published issue',
+            '{$issueVolume}'            => 'Issue volume number',
+            '{$issueNumber}'            => 'Issue issue number',
+            '{$issueYear}'              => 'Issue publication year',
+
+            // Journal & Publisher
+            '{$journalName}'            => 'Full name of the journal',
+            '{$journalInitials}'        => 'Journal initials or acronym',
+            '{$issn}'                   => 'Online or Print ISSN of the journal',
+            '{$onlineIssn}'             => 'Journal Online ISSN',
+            '{$printIssn}'              => 'Journal Print ISSN',
+            '{$publisherInstitution}'   => 'Publisher institution / organization name',
+            '{$journalUrl}'             => 'Public homepage URL of the journal',
+            '{$contactName}'            => 'Principal journal contact person name',
+            '{$contactEmail}'           => 'Principal journal contact email address',
+
+            // Certificate, Verification & Seals
+            '{$certificateNumber}'      => 'Unique official certificate identification number',
+            '{$editorName}'             => 'Name of issuing editor or Editor-in-Chief',
+            '{$editorRole}'             => 'Title / Role of issuing editor',
+            '{$verificationUrl}'        => 'URL link to publicly verify authenticity',
+            '{$qrCode}'                 => 'QR code image linking to verification page',
+            '{$headerLogo}'             => 'Official Header Logo image',
+            '{$editorSignature}'        => 'Editor Signature image',
+            '{$journalSeal}'            => 'Journal Official Seal / Stamp image',
         ];
+    }
+
+    /**
+     * Grouped map of supported variables for UI organization
+     */
+    public static function getCategorizedVariables(): array
+    {
+        return [
+            'Manuscript & Metadata' => [
+                '{$submissionId}'           => 'Manuscript submission ID',
+                '{$articleTitle}'           => 'Accepted article title',
+                '{$articleFullTitle}'       => 'Full title including prefix and subtitle',
+                '{$articlePrefix}'          => 'Article title prefix',
+                '{$articleSubtitle}'        => 'Article subtitle',
+                '{$articleAbstract}'        => 'Article abstract text',
+                '{$sectionTitle}'           => 'Journal section name',
+                '{$doi}'                    => 'Assigned DOI',
+                '{$pages}'                  => 'Pages in issue',
+                '{$articleNumber}'          => 'Article number',
+                '{$keywords}'               => 'Article keywords',
+                '{$disciplines}'            => 'Disciplines',
+                '{$subjects}'               => 'Subjects',
+                '{$supportingAgencies}'     => 'Funding / supporting agencies',
+                '{$licenseUrl}'             => 'License URL',
+                '{$copyrightHolder}'        => 'Copyright holder',
+                '{$copyrightYear}'          => 'Copyright year',
+                '{$urlPublished}'           => 'Public article URL',
+            ],
+            'Dates' => [
+                '{$dateAccepted}'           => 'Date submission was accepted',
+                '{$dateSubmitted}'          => 'Date manuscript was submitted',
+                '{$dateLastActivity}'       => 'Date of last submission activity',
+                '{$datePublished}'          => 'Date article was published',
+                '{$dateIssued}'             => 'Date certificate was generated',
+            ],
+            'Authors & Affiliations' => [
+                '{$authorsList}'            => 'All author names',
+                '{$authorsAffiliations}'    => 'All authors with affiliations',
+                '{$primaryAuthor}'          => 'Primary / corresponding author name',
+                '{$primaryAuthorEmail}'     => 'Primary author email',
+                '{$primaryAuthorAffiliation}'=> 'Primary author affiliation',
+                '{$primaryAuthorOrcid}'     => 'Primary author ORCID iD',
+            ],
+            'Issue & Volume' => [
+                '{$issueIdentification}'    => 'Full issue identification (e.g. Vol. 10 No. 2 (2025))',
+                '{$issueTitle}'             => 'Issue title',
+                '{$issueVolume}'            => 'Issue volume',
+                '{$issueNumber}'            => 'Issue number',
+                '{$issueYear}'              => 'Issue year',
+            ],
+            'Journal & Publisher' => [
+                '{$journalName}'            => 'Full journal name',
+                '{$journalInitials}'        => 'Journal acronym / initials',
+                '{$issn}'                   => 'Online or Print ISSN',
+                '{$onlineIssn}'             => 'Online ISSN',
+                '{$printIssn}'              => 'Print ISSN',
+                '{$publisherInstitution}'   => 'Publisher institution',
+                '{$journalUrl}'             => 'Journal website URL',
+                '{$contactName}'            => 'Principal contact name',
+                '{$contactEmail}'           => 'Principal contact email',
+            ],
+            'Certificate & Graphics' => [
+                '{$certificateNumber}'      => 'Certificate identification number',
+                '{$editorName}'             => 'Issuing editor name',
+                '{$editorRole}'             => 'Issuing editor role',
+                '{$verificationUrl}'        => 'Public verification URL',
+                '{$qrCode}'                 => 'Verification QR code image',
+                '{$headerLogo}'             => 'Official Header Logo image',
+                '{$editorSignature}'        => 'Editor Signature image',
+                '{$journalSeal}'            => 'Journal Seal / Stamp image',
+            ],
+        ];
+    }
+
+    /**
+     * Resolve the formal acceptance date of a submission according to OJS 3.5 decision workflows
+     */
+    public static function resolveDateAccepted(Submission $submission, $publication = null): string
+    {
+        $pub = $publication ?? $submission->getCurrentPublication();
+        if ($pub && $pub->getData('dateAccepted')) {
+            $val = (string) $pub->getData('dateAccepted');
+            return strlen($val) >= 10 ? substr($val, 0, 10) : $val;
+        }
+
+        // Try Repo::decision() (OJS 3.4 & 3.5 standard decision repository)
+        if (class_exists(\APP\facades\Repo::class) && method_exists(\APP\facades\Repo::class, 'decision')) {
+            try {
+                $acceptConstants = [2]; // Decision::ACCEPT
+                if (defined('\PKP\decision\Decision::ACCEPT')) {
+                    $acceptConstants[] = constant('\PKP\decision\Decision::ACCEPT');
+                }
+                if (defined('\PKP\decision\Decision::ACCEPT_INTERNAL')) {
+                    $acceptConstants[] = constant('\PKP\decision\Decision::ACCEPT_INTERNAL');
+                }
+                $acceptConstants = array_values(array_unique($acceptConstants));
+
+                $acceptDecisions = \APP\facades\Repo::decision()
+                    ->getCollector()
+                    ->filterBySubmissionIds([$submission->getId()])
+                    ->filterByDecisionTypes($acceptConstants)
+                    ->orderBy('dateDecided', 'desc')
+                    ->getMany();
+
+                $latest = $acceptDecisions->first();
+                if ($latest && $latest->getData('dateDecided')) {
+                    $val = (string) $latest->getData('dateDecided');
+                    return strlen($val) >= 10 ? substr($val, 0, 10) : $val;
+                }
+            } catch (\Throwable $e) {
+                // Ignore and try fallback
+            }
+        }
+
+        // Fallback: direct query to edit_decisions table
+        if (class_exists(\Illuminate\Support\Facades\DB::class)) {
+            try {
+                $row = \Illuminate\Support\Facades\DB::table('edit_decisions')
+                    ->where('submission_id', $submission->getId())
+                    ->whereIn('decision', [2, 19]) // 2: ACCEPT, 19: ACCEPT_INTERNAL
+                    ->orderBy('date_decided', 'desc')
+                    ->first();
+                if ($row && !empty($row->date_decided)) {
+                    $val = (string) $row->date_decided;
+                    return strlen($val) >= 10 ? substr($val, 0, 10) : $val;
+                }
+            } catch (\Throwable $e) {
+                // Ignore and try fallback
+            }
+        }
+
+        if ($submission->getData('dateAccepted')) {
+            $val = (string) $submission->getData('dateAccepted');
+            return strlen($val) >= 10 ? substr($val, 0, 10) : $val;
+        }
+
+        return date('Y-m-d');
     }
 
     /**
@@ -60,28 +240,6 @@ class CertificatePdfService
     public function substituteVariables(string $htmlTemplate, Submission $submission, array $extra = []): string
     {
         $publication = $submission->getCurrentPublication();
-        
-        // Authors
-        $authors = $publication->getData('authors') ?? [];
-        $authorNames = [];
-        $primaryAuthor = '';
-        foreach ($authors as $index => $author) {
-            $name = $author->getFullName();
-            $authorNames[] = $name;
-            if ($index === 0 || $author->getData('primaryContact')) {
-                $primaryAuthor = $name;
-            }
-        }
-
-        // Section
-        $sectionTitle = '';
-        $sectionId = (int) $publication->getData('sectionId');
-        if ($sectionId) {
-            $section = class_exists(\APP\facades\Repo::class)
-                ? \APP\facades\Repo::section()->get($sectionId)
-                : (\PKP\db\DAORegistry::getDAO('SectionDAO')?->getById($sectionId));
-            $sectionTitle = $section ? $section->getLocalizedTitle() : '';
-        }
 
         $toStr = function ($val): string {
             if (is_array($val)) {
@@ -99,19 +257,183 @@ class CertificatePdfService
             return (string) ($val ?? '');
         };
 
-        // ISSN
+        $formatDate = function ($dateVal): string {
+            if (empty($dateVal)) {
+                return '';
+            }
+            $str = (string) $dateVal;
+            return strlen($str) >= 10 ? substr($str, 0, 10) : $str;
+        };
+
+        $formatList = function ($data): string {
+            if (empty($data)) {
+                return '';
+            }
+            if (is_string($data)) {
+                return $data;
+            }
+            if (is_array($data)) {
+                $items = [];
+                foreach ($data as $item) {
+                    if (is_string($item)) {
+                        $items[] = trim($item);
+                    } elseif (is_array($item) && isset($item['name'])) {
+                        $items[] = trim((string) $item['name']);
+                    } elseif (is_object($item) && isset($item->name)) {
+                        $items[] = trim((string) $item->name);
+                    }
+                }
+                return implode(', ', array_filter($items));
+            }
+            return '';
+        };
+
+        // Authors and Affiliations
+        $authors = $publication ? ($publication->getData('authors') ?? []) : [];
+        $authorNames = [];
+        $authorAffiliationsList = [];
+        $primaryAuthor = '';
+        $primaryAuthorEmail = '';
+        $primaryAuthorAffiliation = '';
+        $primaryAuthorOrcid = '';
+
+        foreach ($authors as $index => $author) {
+            $name = method_exists($author, 'getFullName') ? $author->getFullName() : ($author->getData('givenName') . ' ' . $author->getData('familyName'));
+            $authorNames[] = $name;
+
+            // Affiliation resolution across OJS versions
+            $affil = '';
+            if (method_exists($author, 'getLocalizedAffiliationNamesAsString')) {
+                $affil = (string) $author->getLocalizedAffiliationNamesAsString();
+            }
+            if (!$affil && method_exists($author, 'getLocalizedData')) {
+                $affil = $toStr($author->getLocalizedData('affiliation'));
+            }
+            if (!$affil && method_exists($author, 'getLocalizedOrganizationName')) {
+                $affil = (string) $author->getLocalizedOrganizationName();
+            }
+            if (!$affil) {
+                $affil = $toStr($author->getData('affiliation'));
+            }
+
+            if (!empty($affil)) {
+                $authorAffiliationsList[] = $name . ' (' . $affil . ')';
+            } else {
+                $authorAffiliationsList[] = $name;
+            }
+
+            $isPrimary = ($index === 0 || $author->getData('primaryContact'));
+            if ($isPrimary && empty($primaryAuthor)) {
+                $primaryAuthor = $name;
+                $primaryAuthorEmail = method_exists($author, 'getEmail') ? (string) $author->getEmail() : (string) $author->getData('email');
+                $primaryAuthorAffiliation = $affil;
+                $primaryAuthorOrcid = method_exists($author, 'getOrcid') ? (string) $author->getOrcid() : (string) $author->getData('orcid');
+            } elseif ($author->getData('primaryContact')) {
+                $primaryAuthor = $name;
+                $primaryAuthorEmail = method_exists($author, 'getEmail') ? (string) $author->getEmail() : (string) $author->getData('email');
+                $primaryAuthorAffiliation = $affil;
+                $primaryAuthorOrcid = method_exists($author, 'getOrcid') ? (string) $author->getOrcid() : (string) $author->getData('orcid');
+            }
+        }
+
+        // Section
+        $sectionTitle = '';
+        $sectionId = $publication ? (int) $publication->getData('sectionId') : 0;
+        if ($sectionId) {
+            $section = class_exists(\APP\facades\Repo::class) && method_exists(\APP\facades\Repo::class, 'section')
+                ? \APP\facades\Repo::section()->get($sectionId)
+                : (\PKP\db\DAORegistry::getDAO('SectionDAO')?->getById($sectionId));
+            $sectionTitle = $section ? (method_exists($section, 'getLocalizedTitle') ? $section->getLocalizedTitle() : $toStr($section->getTitle())) : '';
+        }
+
+        // Titles, Abstract, Prefix, Subtitle
+        $title = $publication ? $toStr($publication->getLocalizedTitle() ?: $publication->getLocalizedData('title')) : '';
+        $prefix = $publication ? $toStr($publication->getLocalizedData('prefix')) : '';
+        $subtitle = $publication ? $toStr($publication->getLocalizedData('subtitle')) : '';
+        $fullTitle = $publication ? $toStr($publication->getLocalizedData('fullTitle')) : '';
+        if (!$fullTitle) {
+            $fullTitle = trim(($prefix ? $prefix . ' ' : '') . $title . ($subtitle ? ': ' . $subtitle : ''));
+        }
+
+        $abstractRaw = $publication ? $toStr($publication->getLocalizedData('abstract')) : '';
+        $abstractClean = trim(strip_tags($abstractRaw));
+
+        // Publication Metadata
+        $pages = $publication ? $toStr($publication->getData('pages')) : '';
+        $articleNumber = $publication ? $toStr($publication->getData('articleNumber')) : '';
+        $licenseUrl = $publication ? $toStr($publication->getData('licenseUrl')) : '';
+        $copyrightHolder = $publication ? $toStr($publication->getLocalizedData('copyrightHolder') ?: $publication->getData('copyrightHolder')) : '';
+        $copyrightYear = $publication ? $toStr($publication->getData('copyrightYear')) : '';
+        $urlPublished = $publication ? $toStr($publication->getData('urlPublished')) : '';
+
+        // Keywords, Disciplines, Subjects, Supporting Agencies
+        $keywords = $publication ? $formatList($publication->getLocalizedData('keywords')) : '';
+        $disciplines = $publication ? $formatList($publication->getLocalizedData('disciplines')) : '';
+        $subjects = $publication ? $formatList($publication->getLocalizedData('subjects')) : '';
+        $supportingAgencies = $publication ? $formatList($publication->getLocalizedData('supportingAgencies')) : '';
+        if (!$supportingAgencies && $publication) {
+            $supportingAgencies = $toStr($publication->getLocalizedData('fundingStatement'));
+        }
+
+        // DOI
+        $doi = 'N/A';
+        if ($publication) {
+            $storedDoi = $toStr($publication->getStoredPubId('doi'));
+            if ($storedDoi) {
+                $doi = $storedDoi;
+            } else {
+                $doiObj = $publication->getData('doiObject');
+                if ($doiObj && method_exists($doiObj, 'getDoi')) {
+                    $doi = (string) $doiObj->getDoi();
+                }
+            }
+        }
+
+        // Issue and Volume Metadata
+        $issueTitle = '';
+        $issueVolume = '';
+        $issueNumber = '';
+        $issueYear = '';
+        $issueIdentification = '';
+
+        $issueId = $publication ? (int) $publication->getData('issueId') : 0;
+        if ($issueId) {
+            $issue = class_exists(\APP\facades\Repo::class) && method_exists(\APP\facades\Repo::class, 'issue')
+                ? \APP\facades\Repo::issue()->get($issueId)
+                : (\PKP\db\DAORegistry::getDAO('IssueDAO')?->getById($issueId, $this->context->getId()));
+
+            if ($issue) {
+                $issueIdentification = method_exists($issue, 'getIssueIdentification') ? $issue->getIssueIdentification() : (string) $issue->getData('identification');
+                $issueTitle = method_exists($issue, 'getLocalizedTitle') ? (string) $issue->getLocalizedTitle() : (string) $issue->getData('title');
+                $issueVolume = (string) $issue->getData('volume');
+                $issueNumber = (string) $issue->getData('number');
+                $issueYear = (string) $issue->getData('year');
+            }
+        }
+
+        // Dates
+        $dateSubmitted = $formatDate($submission->getData('dateSubmitted'));
+        $dateLastActivity = $formatDate($submission->getData('dateLastActivity'));
+        $datePublished = $publication ? $formatDate($publication->getData('datePublished')) : '';
+        $dateAccepted = !empty($extra['dateAccepted'])
+            ? $formatDate($extra['dateAccepted'])
+            : self::resolveDateAccepted($submission, $publication);
+
+        // Journal details
         $onlineIssn = $toStr($this->context->getData('onlineIssn'));
         $printIssn = $toStr($this->context->getData('printIssn'));
         $issn = $onlineIssn ?: $printIssn;
 
-        // Acronym
         $acronym = $this->context->getLocalizedData('acronym');
         if (!$acronym) {
             $acronym = $toStr($this->context->getData('acronym'));
         }
 
-        // Journal name
         $journalName = $this->context->getLocalizedName() ?: $toStr($this->context->getData('name'));
+        $publisherInstitution = $toStr($this->context->getLocalizedData('publisherInstitution') ?: $this->context->getData('publisherInstitution'));
+        $journalUrl = method_exists($this->context, 'getUrl') ? (string) $this->context->getUrl() : '';
+        $contactName = $toStr($this->context->getData('contactName'));
+        $contactEmail = $toStr($this->context->getData('contactEmail'));
 
         // QR Code element
         $qrCodeHtml = '';
@@ -140,28 +462,73 @@ class CertificatePdfService
             : '';
 
         $replacements = [
-            '{$journalName}'       => htmlspecialchars($toStr($journalName)),
-            '{$journalInitials}'   => htmlspecialchars($toStr($acronym)),
-            '{$issn}'              => htmlspecialchars($toStr($issn)),
-            '{$submissionId}'      => (string) $submission->getId(),
-            '{$articleTitle}'      => htmlspecialchars($toStr($publication->getLocalizedTitle())),
-            '{$authorsList}'       => htmlspecialchars(implode(', ', $authorNames)),
-            '{$primaryAuthor}'     => htmlspecialchars($toStr($primaryAuthor ?: ($authorNames[0] ?? ''))),
-            '{$sectionTitle}'      => htmlspecialchars($toStr($sectionTitle)),
-            '{$dateAccepted}'      => htmlspecialchars($toStr($extra['dateAccepted'] ?? date('Y-m-d'))),
-            '{$dateIssued}'        => date('Y-m-d'),
-            '{$certificateNumber}' => htmlspecialchars($toStr($extra['certificateNumber'] ?? 'DRAFT')),
-            '{$editorName}'        => htmlspecialchars($toStr($extra['editorName'] ?? ($this->context->getData('contactName') ?? 'The Editorial Board'))),
-            '{$editorRole}'        => htmlspecialchars($toStr($extra['editorRole'] ?? 'Editor-in-Chief')),
-            '{$doi}'               => htmlspecialchars($toStr($publication->getStoredPubId('doi') ?? 'N/A')),
-            '{$verificationUrl}'   => htmlspecialchars($toStr($extra['verificationUrl'] ?? '')),
-            '{$qrCode}'            => $qrCodeHtml,
-            '{$headerLogo}'        => $logoImgTag,
-            '{$logo}'              => $logoImgTag,
-            '{$editorSignature}'   => $signatureImgTag,
-            '{$signature}'         => $signatureImgTag,
-            '{$journalSeal}'       => $stampImgTag,
-            '{$stamp}'             => $stampImgTag,
+            // Journal & Publisher
+            '{$journalName}'            => htmlspecialchars($toStr($journalName)),
+            '{$journalInitials}'        => htmlspecialchars($toStr($acronym)),
+            '{$issn}'                   => htmlspecialchars($toStr($issn)),
+            '{$onlineIssn}'             => htmlspecialchars($onlineIssn),
+            '{$printIssn}'              => htmlspecialchars($printIssn),
+            '{$publisherInstitution}'   => htmlspecialchars($publisherInstitution),
+            '{$journalUrl}'             => htmlspecialchars($journalUrl),
+            '{$contactName}'            => htmlspecialchars($contactName),
+            '{$contactEmail}'           => htmlspecialchars($contactEmail),
+
+            // Manuscript & Publication Metadata
+            '{$submissionId}'           => (string) $submission->getId(),
+            '{$articleTitle}'           => htmlspecialchars($title),
+            '{$articleFullTitle}'       => htmlspecialchars($fullTitle),
+            '{$articlePrefix}'          => htmlspecialchars($prefix),
+            '{$articleSubtitle}'        => htmlspecialchars($subtitle),
+            '{$articleAbstract}'        => htmlspecialchars($abstractClean),
+            '{$sectionTitle}'           => htmlspecialchars($toStr($sectionTitle)),
+            '{$doi}'                    => htmlspecialchars($doi),
+            '{$pages}'                  => htmlspecialchars($pages),
+            '{$articleNumber}'          => htmlspecialchars($articleNumber),
+            '{$licenseUrl}'             => htmlspecialchars($licenseUrl),
+            '{$copyrightHolder}'        => htmlspecialchars($copyrightHolder),
+            '{$copyrightYear}'          => htmlspecialchars($copyrightYear),
+            '{$urlPublished}'           => htmlspecialchars($urlPublished),
+            '{$keywords}'               => htmlspecialchars($keywords),
+            '{$disciplines}'            => htmlspecialchars($disciplines),
+            '{$subjects}'               => htmlspecialchars($subjects),
+            '{$supportingAgencies}'     => htmlspecialchars($supportingAgencies),
+
+            // Authors & Contributors
+            '{$authorsList}'            => htmlspecialchars(implode(', ', $authorNames)),
+            '{$authorsAffiliations}'    => htmlspecialchars(implode(', ', $authorAffiliationsList)),
+            '{$primaryAuthor}'          => htmlspecialchars($toStr($primaryAuthor ?: ($authorNames[0] ?? ''))),
+            '{$primaryAuthorEmail}'     => htmlspecialchars($primaryAuthorEmail),
+            '{$primaryAuthorAffiliation}'=> htmlspecialchars($primaryAuthorAffiliation),
+            '{$primaryAuthorOrcid}'     => htmlspecialchars($primaryAuthorOrcid),
+
+            // Issue & Volume
+            '{$issueIdentification}'    => htmlspecialchars($issueIdentification),
+            '{$issueTitle}'             => htmlspecialchars($issueTitle),
+            '{$issueVolume}'            => htmlspecialchars($issueVolume),
+            '{$issueNumber}'            => htmlspecialchars($issueNumber),
+            '{$issueYear}'              => htmlspecialchars($issueYear),
+
+            // Key Dates
+            '{$dateAccepted}'           => htmlspecialchars($dateAccepted),
+            '{$dateSubmitted}'          => htmlspecialchars($dateSubmitted),
+            '{$dateLastActivity}'       => htmlspecialchars($dateLastActivity),
+            '{$datePublished}'          => htmlspecialchars($datePublished),
+            '{$dateIssued}'             => date('Y-m-d'),
+
+            // Certificate & Verification
+            '{$certificateNumber}'      => htmlspecialchars($toStr($extra['certificateNumber'] ?? 'DRAFT')),
+            '{$editorName}'             => htmlspecialchars($toStr($extra['editorName'] ?? ($contactName ?: 'The Editorial Board'))),
+            '{$editorRole}'             => htmlspecialchars($toStr($extra['editorRole'] ?? 'Editor-in-Chief')),
+            '{$verificationUrl}'        => htmlspecialchars($toStr($extra['verificationUrl'] ?? '')),
+            '{$qrCode}'                 => $qrCodeHtml,
+
+            // Images & Seals
+            '{$headerLogo}'             => $logoImgTag,
+            '{$logo}'                   => $logoImgTag,
+            '{$editorSignature}'        => $signatureImgTag,
+            '{$signature}'              => $signatureImgTag,
+            '{$journalSeal}'            => $stampImgTag,
+            '{$stamp}'                  => $stampImgTag,
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $htmlTemplate);

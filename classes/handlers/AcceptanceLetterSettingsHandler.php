@@ -37,11 +37,12 @@ class AcceptanceLetterSettingsHandler extends Handler
 
         $templateMgr = \PKP\template\PKPTemplateManager::getManager($request);
         $templateMgr->assign([
-            'template'       => $template,
-            'variables'      => CertificatePdfService::getSupportedVariables(),
-            'defaultBodyEn'  => AcceptanceTemplate::getDefaultBodyHtml('en'),
-            'defaultBodyAr'  => AcceptanceTemplate::getDefaultBodyHtml('ar'),
-            'currentLocale'  => $context->getPrimaryLocale() ?? 'en',
+            'template'             => $template,
+            'variables'            => CertificatePdfService::getSupportedVariables(),
+            'categorizedVariables' => CertificatePdfService::getCategorizedVariables(),
+            'defaultBodyEn'        => AcceptanceTemplate::getDefaultBodyHtml('en'),
+            'defaultBodyAr'        => AcceptanceTemplate::getDefaultBodyHtml('ar'),
+            'currentLocale'        => $context->getPrimaryLocale() ?? 'en',
         ]);
 
         return new JSONMessage(true, $templateMgr->fetch($this->getTemplateResource('settings.tpl')));

@@ -44,15 +44,33 @@
 
         <!-- Available Dynamic Tokens -->
         <div class="pkp_form_section" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
-            <h4 style="margin-top: 0;">{translate key="plugins.generic.acceptanceLetter.tokensTitle"}</h4>
-            <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">{translate key="plugins.generic.acceptanceLetter.tokensDesc"}</p>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                {foreach from=$variables key=varCode item=varLabel}
-                    <button type="button" class="pkp_button pkp_button_text token-chip" onclick="insertToken('{$varCode|escape}')" title="{$varLabel|escape}" style="background: #e2e8f0; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 11px;">
-                        {$varCode|escape}
-                    </button>
-                {/foreach}
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <h4 style="margin: 0;">{translate key="plugins.generic.acceptanceLetter.tokensTitle"}</h4>
+                <span style="font-size: 11px; color: #475569; background: #e2e8f0; padding: 2px 8px; border-radius: 10px; font-weight: 600;">OJS 3.5 Metadata</span>
             </div>
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">{translate key="plugins.generic.acceptanceLetter.tokensDesc"}</p>
+            {if !empty($categorizedVariables)}
+                {foreach from=$categorizedVariables key=categoryName item=catTokens}
+                    <div style="margin-bottom: 12px;">
+                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 6px; letter-spacing: 0.5px;">{$categoryName|escape}</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            {foreach from=$catTokens key=varCode item=varLabel}
+                                <button type="button" class="pkp_button pkp_button_text token-chip" onclick="insertToken('{$varCode|escape}')" title="{$varLabel|escape}" style="background: #ffffff; border: 1px solid #cbd5e1; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 11px; cursor: pointer; color: #0f172a;">
+                                    {$varCode|escape}
+                                </button>
+                            {/foreach}
+                        </div>
+                    </div>
+                {/foreach}
+            {else}
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    {foreach from=$variables key=varCode item=varLabel}
+                        <button type="button" class="pkp_button pkp_button_text token-chip" onclick="insertToken('{$varCode|escape}')" title="{$varLabel|escape}" style="background: #ffffff; border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 11px; cursor: pointer;">
+                            {$varCode|escape}
+                        </button>
+                    {/foreach}
+                </div>
+            {/if}
         </div>
 
         <!-- Letter Body WYSIWYG / HTML -->

@@ -25,6 +25,12 @@
                 <td style="padding: 4px 8px; color: #0284c7;">{$primaryAuthorEmail|escape}</td>
             </tr>
             {/if}
+            {if !empty($dateAccepted)}
+            <tr>
+                <td style="padding: 4px 8px;"><strong>{translate key="submission.accepted"|default:"Date Accepted"}:</strong></td>
+                <td style="padding: 4px 8px; color: #166534; font-weight: 500;">{$dateAccepted|escape}</td>
+            </tr>
+            {/if}
             <tr>
                 <td style="padding: 4px 8px;"><strong>{translate key="plugins.generic.acceptanceLetter.issuingEditor"}:</strong></td>
                 <td style="padding: 4px 8px;">{$user->getFullName()|escape}</td>

@@ -103,6 +103,8 @@ class AcceptanceLetterWorkflowHandler extends Handler
             $authorString = implode(', ', $names);
         }
 
+        $dateAccepted = CertificatePdfService::resolveDateAccepted($submission, $publication);
+
         $templateMgr = \PKP\template\PKPTemplateManager::getManager($request);
         $templateMgr->assign([
             'submission'         => $submission,
@@ -110,6 +112,7 @@ class AcceptanceLetterWorkflowHandler extends Handler
             'user'               => $request->getUser(),
             'authorString'       => $authorString,
             'primaryAuthorEmail' => $primaryAuthorEmail,
+            'dateAccepted'       => $dateAccepted,
         ]);
 
         return new JSONMessage(true, $templateMgr->fetch($this->getTemplateResource('workflowModal.tpl')));
@@ -155,12 +158,13 @@ class AcceptanceLetterWorkflowHandler extends Handler
         $qrCodeData = VerificationService::generateQrCodeDataUri($verifyUrl);
 
         $pdfService = new CertificatePdfService($context);
+        $dateAccepted = CertificatePdfService::resolveDateAccepted($submission, $submission->getCurrentPublication());
         $extra = [
             'template'           => $template,
             'logoPath'           => $template->logo_path,
             'signaturePath'      => $template->signature_path,
             'stampPath'          => $template->stamp_path,
-            'dateAccepted'       => date('Y-m-d'),
+            'dateAccepted'       => $dateAccepted,
             'dateIssued'         => date('Y-m-d'),
             'certificateNumber'  => $certNumber,
             'editorName'         => $user->getFullName(),
@@ -259,12 +263,13 @@ class AcceptanceLetterWorkflowHandler extends Handler
 
         $editorName = $user ? $user->getFullName() : ($context->getData('contactName') ?? 'Editorial Office');
         $pdfService = new CertificatePdfService($context);
+        $dateAccepted = CertificatePdfService::resolveDateAccepted($submission, $publication);
         $extra = [
             'template'           => $template,
             'logoPath'           => $template->logo_path,
             'signaturePath'      => $template->signature_path,
             'stampPath'          => $template->stamp_path,
-            'dateAccepted'       => date('Y-m-d'),
+            'dateAccepted'       => $dateAccepted,
             'dateIssued'         => date('Y-m-d'),
             'certificateNumber'  => $certNumber,
             'editorName'         => $editorName,
