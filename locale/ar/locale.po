@@ -22,6 +22,15 @@ msgstr "تخصيص قالب الخطاب وأبعاد الصفحة والاتج�
 msgid "plugins.generic.acceptanceLetter.templateName"
 msgstr "اسم القالب"
 
+msgid "plugins.generic.acceptanceLetter.editorInChief"
+msgstr "رئيس تحرير المجلة"
+
+msgid "plugins.generic.acceptanceLetter.editorInChiefDesc"
+msgstr "اسم رئيس تحرير المجلة ليظهر في خطابات وشهادات القبول الرسمية."
+
+msgid "plugins.generic.acceptanceLetter.editorInChiefPlaceholder"
+msgstr "مثال: أ. د. فلان الفلاني"
+
 msgid "plugins.generic.acceptanceLetter.pageSize"
 msgstr "حجم الورق"
 

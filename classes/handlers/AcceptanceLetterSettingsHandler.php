@@ -35,11 +35,16 @@ class AcceptanceLetterSettingsHandler extends Handler
         $context = $request->getContext();
         $template = AcceptanceTemplate::getDefaultTemplate($context->getId());
 
+        $plugin = \PKP\plugins\PluginRegistry::getPlugin('generic', 'acceptanceletterplugin');
+        $editorInChief = $plugin ? (string) ($plugin->getSetting($context->getId(), 'editorInChief') ?? '') : '';
+
         $templateMgr = \PKP\template\PKPTemplateManager::getManager($request);
         $templateMgr->assign([
             'template'             => $template,
             'variables'            => CertificatePdfService::getSupportedVariables(),
             'categorizedVariables' => CertificatePdfService::getCategorizedVariables(),
+            'pluginName'           => $plugin ? $plugin->getName() : 'acceptanceletterplugin',
+            'editorInChief'        => $editorInChief,
             'defaultBodyEn'        => AcceptanceTemplate::getDefaultBodyHtml('en'),
             'defaultBodyAr'        => AcceptanceTemplate::getDefaultBodyHtml('ar'),
             'currentLocale'        => $context->getPrimaryLocale() ?? 'en',
@@ -121,6 +126,12 @@ class AcceptanceLetterSettingsHandler extends Handler
             }
         } else {
             $template = AcceptanceTemplate::create($data);
+        }
+
+        $editorInChief = trim((string) $request->getUserVar('editorInChief'));
+        $plugin = \PKP\plugins\PluginRegistry::getPlugin('generic', 'acceptanceletterplugin');
+        if ($plugin) {
+            $plugin->updateSetting($context->getId(), 'editorInChief', $editorInChief);
         }
 
         return new JSONMessage(true, ['templateId' => $template->template_id, 'message' => __('plugins.generic.acceptanceLetter.saved')]);

@@ -105,11 +105,16 @@ class AcceptanceLetterWorkflowHandler extends Handler
 
         $dateAccepted = CertificatePdfService::resolveDateAccepted($submission, $publication);
 
+        $plugin = \PKP\plugins\PluginRegistry::getPlugin('generic', 'acceptanceletterplugin');
+        $editorInChief = $plugin ? (string) ($plugin->getSetting($context->getId(), 'editorInChief') ?? '') : '';
+        $user = $request->getUser();
+
         $templateMgr = \PKP\template\PKPTemplateManager::getManager($request);
         $templateMgr->assign([
             'submission'         => $submission,
             'template'           => $template,
-            'user'               => $request->getUser(),
+            'user'               => $user,
+            'editorInChief'      => $editorInChief ?: ($user ? $user->getFullName() : ($context->getData('contactName') ?? 'Editorial Office')),
             'authorString'       => $authorString,
             'primaryAuthorEmail' => $primaryAuthorEmail,
             'dateAccepted'       => $dateAccepted,
@@ -157,6 +162,10 @@ class AcceptanceLetterWorkflowHandler extends Handler
         $verifyUrl = VerificationService::getVerificationUrl($token, $context->getPath());
         $qrCodeData = VerificationService::generateQrCodeDataUri($verifyUrl);
 
+        $plugin = \PKP\plugins\PluginRegistry::getPlugin('generic', 'acceptanceletterplugin');
+        $editorInChief = $plugin ? (string) ($plugin->getSetting($context->getId(), 'editorInChief') ?? '') : '';
+        $editorName = $editorInChief ?: ($user ? $user->getFullName() : ($context->getData('contactName') ?? 'Editorial Office'));
+
         $pdfService = new CertificatePdfService($context);
         $dateAccepted = CertificatePdfService::resolveDateAccepted($submission, $submission->getCurrentPublication());
         $extra = [
@@ -167,8 +176,9 @@ class AcceptanceLetterWorkflowHandler extends Handler
             'dateAccepted'       => $dateAccepted,
             'dateIssued'         => date('Y-m-d'),
             'certificateNumber'  => $certNumber,
-            'editorName'         => $user->getFullName(),
-            'editorRole'         => 'Editor',
+            'editorName'         => $editorName,
+            'editorInChief'      => $editorName,
+            'editorRole'         => 'Editor in chief of the journal',
             'verificationUrl'    => $verifyUrl,
             'qrCodeImgTag'       => $qrCodeData ? '<img src="' . $qrCodeData . '" style="width:70px;height:70px;" />' : '',
             'qrCodeDataUri'      => $qrCodeData,
@@ -261,7 +271,10 @@ class AcceptanceLetterWorkflowHandler extends Handler
         $verifyUrl = VerificationService::getVerificationUrl($token, $context->getPath());
         $qrCodeData = VerificationService::generateQrCodeDataUri($verifyUrl);
 
-        $editorName = $user ? $user->getFullName() : ($context->getData('contactName') ?? 'Editorial Office');
+        $plugin = \PKP\plugins\PluginRegistry::getPlugin('generic', 'acceptanceletterplugin');
+        $editorInChief = $plugin ? (string) ($plugin->getSetting($context->getId(), 'editorInChief') ?? '') : '';
+        $editorName = $editorInChief ?: ($user ? $user->getFullName() : ($context->getData('contactName') ?? 'Editorial Office'));
+
         $pdfService = new CertificatePdfService($context);
         $dateAccepted = CertificatePdfService::resolveDateAccepted($submission, $publication);
         $extra = [
@@ -273,7 +286,8 @@ class AcceptanceLetterWorkflowHandler extends Handler
             'dateIssued'         => date('Y-m-d'),
             'certificateNumber'  => $certNumber,
             'editorName'         => $editorName,
-            'editorRole'         => 'Editor',
+            'editorInChief'      => $editorName,
+            'editorRole'         => 'Editor in chief of the journal',
             'verificationUrl'    => $verifyUrl,
             'qrCodeImgTag'       => $qrCodeData ? '<img src="' . $qrCodeData . '" style="width:70px;height:70px;" />' : '',
             'qrCodeDataUri'      => $qrCodeData,
@@ -309,6 +323,7 @@ class AcceptanceLetterWorkflowHandler extends Handler
     <br>
     <p>Sincerely,<br>
     <strong>{$editorName}</strong><br>
+    Editor in chief of the journal<br>
     {$journalName}</p>
 </div>
 HTML;

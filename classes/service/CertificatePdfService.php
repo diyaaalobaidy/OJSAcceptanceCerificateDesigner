@@ -87,7 +87,8 @@ class CertificatePdfService
 
             // Certificate, Verification & Seals
             '{$certificateNumber}'      => 'Unique official certificate identification number',
-            '{$editorName}'             => 'Name of issuing editor or Editor-in-Chief',
+            '{$editorInChief}'          => 'Editor in chief of the journal',
+            '{$editorName}'             => 'Editor in chief of the journal / Name of issuing editor',
             '{$editorRole}'             => 'Title / Role of issuing editor',
             '{$verificationUrl}'        => 'URL link to publicly verify authenticity',
             '{$qrCode}'                 => 'QR code image linking to verification page',
@@ -158,7 +159,8 @@ class CertificatePdfService
             ],
             'Certificate & Graphics' => [
                 '{$certificateNumber}'      => 'Certificate identification number',
-                '{$editorName}'             => 'Issuing editor name',
+                '{$editorInChief}'          => 'Editor in chief of the journal',
+                '{$editorName}'             => 'Editor in chief of the journal / Issuing editor',
                 '{$editorRole}'             => 'Issuing editor role',
                 '{$verificationUrl}'        => 'Public verification URL',
                 '{$qrCode}'                 => 'Verification QR code image',
@@ -461,6 +463,12 @@ class CertificatePdfService
             ? '<img src="' . htmlspecialchars($stampDataUri) . '" alt="Journal Official Seal" width="' . $stampDim['width'] . '" height="' . $stampDim['height'] . '" class="stamp-img" style="width:' . $stampDim['width'] . 'px; height:' . $stampDim['height'] . 'px; display:inline-block; vertical-align:middle;" />'
             : '';
 
+        $plugin = class_exists(\PKP\plugins\PluginRegistry::class)
+            ? \PKP\plugins\PluginRegistry::getPlugin('generic', 'acceptanceletterplugin')
+            : null;
+        $pluginEditorInChief = $plugin ? (string) ($plugin->getSetting($this->context->getId(), 'editorInChief') ?? '') : '';
+        $resolvedEditorInChief = $pluginEditorInChief ?: ($extra['editorInChief'] ?? ($extra['editorName'] ?? ($contactName ?: 'Editor in chief')));
+
         $replacements = [
             // Journal & Publisher
             '{$journalName}'            => htmlspecialchars($toStr($journalName)),
@@ -517,8 +525,9 @@ class CertificatePdfService
 
             // Certificate & Verification
             '{$certificateNumber}'      => htmlspecialchars($toStr($extra['certificateNumber'] ?? 'DRAFT')),
-            '{$editorName}'             => htmlspecialchars($toStr($extra['editorName'] ?? ($contactName ?: 'The Editorial Board'))),
-            '{$editorRole}'             => htmlspecialchars($toStr($extra['editorRole'] ?? 'Editor-in-Chief')),
+            '{$editorInChief}'          => htmlspecialchars($toStr($resolvedEditorInChief)),
+            '{$editorName}'             => htmlspecialchars($toStr($resolvedEditorInChief)),
+            '{$editorRole}'             => htmlspecialchars($toStr($extra['editorRole'] ?? 'Editor in chief of the journal')),
             '{$verificationUrl}'        => htmlspecialchars($toStr($extra['verificationUrl'] ?? '')),
             '{$qrCode}'                 => $qrCodeHtml,
 
@@ -544,8 +553,15 @@ class CertificatePdfService
         $isRtl = ($template->locale === 'ar' || str_starts_with($template->locale ?? '', 'ar_'));
         $dir = $isRtl ? 'rtl' : 'ltr';
 
-        $extra['editorName'] = htmlspecialchars((string) ($extra['editorName'] ?? ''));
-        $extra['editorRole'] = htmlspecialchars((string) ($extra['editorRole'] ?? ''));
+        $plugin = class_exists(\PKP\plugins\PluginRegistry::class)
+            ? \PKP\plugins\PluginRegistry::getPlugin('generic', 'acceptanceletterplugin')
+            : null;
+        $pluginEditorInChief = $plugin ? (string) ($plugin->getSetting($this->context->getId(), 'editorInChief') ?? '') : '';
+        $resolvedEditor = $pluginEditorInChief ?: ($extra['editorInChief'] ?? ($extra['editorName'] ?? ''));
+
+        $extra['editorName'] = htmlspecialchars((string) ($extra['editorName'] ?: $resolvedEditor));
+        $extra['editorInChief'] = htmlspecialchars((string) ($extra['editorInChief'] ?: $resolvedEditor));
+        $extra['editorRole'] = htmlspecialchars((string) ($extra['editorRole'] ?? 'Editor in chief of the journal'));
         $extra['qrCodeImgTag'] = (string) ($extra['qrCodeImgTag'] ?? '');
         $extra['certificateNumber'] = htmlspecialchars((string) ($extra['certificateNumber'] ?? ''));
         $extra['dateIssued'] = htmlspecialchars((string) ($extra['dateIssued'] ?? date('Y-m-d')));

@@ -22,6 +22,15 @@ msgstr "Customize the letter template, paper dimensions, orientation, and offici
 msgid "plugins.generic.acceptanceLetter.templateName"
 msgstr "Template Name"
 
+msgid "plugins.generic.acceptanceLetter.editorInChief"
+msgstr "Editor in chief of the journal"
+
+msgid "plugins.generic.acceptanceLetter.editorInChiefDesc"
+msgstr "Name of the Editor in chief of the journal to appear on official acceptance letters and certificates."
+
+msgid "plugins.generic.acceptanceLetter.editorInChiefPlaceholder"
+msgstr "e.g. Prof. Dr. John Doe"
+
 msgid "plugins.generic.acceptanceLetter.pageSize"
 msgstr "Paper Size"
 

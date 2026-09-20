@@ -107,6 +107,7 @@ class AcceptanceLetterPlugin extends GenericPlugin
                     'variables'            => \APP\plugins\generic\acceptanceLetter\classes\service\CertificatePdfService::getSupportedVariables(),
                     'categorizedVariables' => \APP\plugins\generic\acceptanceLetter\classes\service\CertificatePdfService::getCategorizedVariables(),
                     'pluginName'           => $this->getName(),
+                    'editorInChief'        => (string) ($this->getSetting($context->getId(), 'editorInChief') ?? ''),
                     'defaultBodyEn'        => \APP\plugins\generic\acceptanceLetter\classes\model\AcceptanceTemplate::getDefaultBodyHtml('en'),
                     'defaultBodyAr'        => \APP\plugins\generic\acceptanceLetter\classes\model\AcceptanceTemplate::getDefaultBodyHtml('ar'),
                     'currentLocale'        => $context->getPrimaryLocale() ?? 'en',
@@ -181,6 +182,9 @@ class AcceptanceLetterPlugin extends GenericPlugin
                 } else {
                     \APP\plugins\generic\acceptanceLetter\classes\model\AcceptanceTemplate::create($data);
                 }
+
+                $editorInChief = trim((string) $request->getUserVar('editorInChief'));
+                $this->updateSetting($context->getId(), 'editorInChief', $editorInChief);
 
                 return new \PKP\core\JSONMessage(true);
         }

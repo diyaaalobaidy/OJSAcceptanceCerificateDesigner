@@ -66,7 +66,8 @@ class AcceptanceTemplate extends Model
 <p>authored by <strong>{\$authorsList}</strong> (Manuscript ID: <strong>#{\$submissionId}</strong>) has been formally <strong>ACCEPTED</strong> for publication in <strong>{\$journalName} ({\$journalInitials})</strong>.</p>
 <p>The paper has been thoroughly evaluated by peer reviewers in our review process and meets the standards and rigor required by our editorial board.</p>
 <p>Sincerely,<br>
-<strong>{\$editorName}</strong><br>
+<strong>{\$editorInChief}</strong><br>
+Editor in chief of the journal<br>
 <br>
 </p>
 HTML;

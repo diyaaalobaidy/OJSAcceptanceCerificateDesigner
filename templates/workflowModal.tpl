@@ -32,8 +32,8 @@
             </tr>
             {/if}
             <tr>
-                <td style="padding: 4px 8px;"><strong>{translate key="plugins.generic.acceptanceLetter.issuingEditor"}:</strong></td>
-                <td style="padding: 4px 8px;">{$user->getFullName()|escape}</td>
+                <td style="padding: 4px 8px;"><strong>{translate key="plugins.generic.acceptanceLetter.editorInChief"|default:"Editor in chief of the journal"}:</strong></td>
+                <td style="padding: 4px 8px;">{$editorInChief|default:$user->getFullName()|escape}</td>
             </tr>
         </table>
     </div>

@@ -18,6 +18,12 @@
             <input type="text" id="templateName" name="name" value="{$template->name|default:'Default Acceptance Template'|escape}" required class="pkp_input" />
         </div>
 
+        <div class="pkp_form_row">
+            <label for="editorInChief"><strong>{translate key="plugins.generic.acceptanceLetter.editorInChief"}</strong></label>
+            <input type="text" id="editorInChief" name="editorInChief" value="{$editorInChief|escape}" class="pkp_input" placeholder="{translate key="plugins.generic.acceptanceLetter.editorInChiefPlaceholder"}" />
+            <small style="color: #64748b; font-size: 12px; display: block; margin-top: 4px;">{translate key="plugins.generic.acceptanceLetter.editorInChiefDesc"}</small>
+        </div>
+
         <div class="pkp_form_row_grid" style="display: flex; gap: 20px; margin-bottom: 20px;">
             <div style="flex: 1;">
                 <label for="pageSize">{translate key="plugins.generic.acceptanceLetter.pageSize"}</label>
@@ -76,19 +82,20 @@
         <!-- Letter Body WYSIWYG / HTML -->
         <div class="pkp_form_row">
             <label for="bodyHtml">{translate key="plugins.generic.acceptanceLetter.bodyContent"} *</label>
-            <textarea id="bodyHtml" name="bodyHtml" rows="14" class="pkp_input" style="font-family: monospace; width: 100%;">{if $template}{$template->body_html|escape}{else}<h2 style="text-align: center; color: #005a9c;">OFFICIAL ACCEPTANCE LETTER</h2>
+            <textarea id="bodyHtml" name="bodyHtml" rows="14" class="pkp_input" style="font-family: monospace; width: 100%;">{if $template}{$template->body_html|escape}{else}{literal}<h2 style="text-align: center; color: #005a9c;">OFFICIAL ACCEPTANCE LETTER</h2>
 <p>Date: {$dateAccepted}</p>
 <p>Dear {$authorsList},</p>
 <p>We are delighted to inform you that your manuscript titled:</p>
 <blockquote style="border-left: 3px solid #005a9c; padding-left: 10px; margin: 15px 0; font-style: italic;">
     {$articleTitle}
 </blockquote>
-<p>authored by <strong></strong> (Manuscript ID: <strong>#{$submissionId}</strong>) has been formally <strong>ACCEPTED</strong> for publication in <strong>{$journalName} ({$journalInitials})</strong>.</p>
+<p>authored by <strong>{$authorsList}</strong> (Manuscript ID: <strong>#{$submissionId}</strong>) has been formally <strong>ACCEPTED</strong> for publication in <strong>{$journalName} ({$journalInitials})</strong>.</p>
 <p>The paper has been thoroughly evaluated by peer reviewers in our review process and meets the standards and rigor required by our editorial board.</p>
 <p>Sincerely,<br>
-<strong>{$editorName}</strong><br>
+<strong>{$editorInChief}</strong><br>
+Editor in chief of the journal<br>
 <br>
-</p>{/if}</textarea>
+</p>{/literal}{/if}</textarea>
         </div>
 
         <!-- Signature & Stamp uploads -->
