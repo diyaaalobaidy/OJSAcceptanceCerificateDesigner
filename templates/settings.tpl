@@ -93,7 +93,7 @@
 <p>The paper has been thoroughly evaluated by peer reviewers in our review process and meets the standards and rigor required by our editorial board.</p>
 <p>Sincerely,<br>
 <strong>{$editorInChief}</strong><br>
-Editor in chief of the journal<br>
+{$journalInitials} Editor in chief<br>
 <br>
 </p>{/literal}{/if}</textarea>
         </div>
